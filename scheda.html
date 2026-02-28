@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Scheda Libro — Traccia Libri Lettura</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
@@ -12,32 +12,30 @@
 </head>
 <body>
 
-  <header>
-    <div class="header-content">
-      <div class="title-section">
-        <h1>Scheda del Libro</h1>
-      </div>
-      <nav>
-        <div class="dropdown">
-          <button class="dropbtn"><span class="menu-icon">☰</span></button>
-          <div class="dropdown-content">
-            <a href="home.html">Home</a>
-            <a href="aggiungi_libro.html">Aggiungi Libro</a>
-            <a href="libri.html">Tutti i Libri</a>
-            <a href="miei_libri.html">I Miei Libri</a>
-            <a href="#" id="logout-link">Esci</a>
-          </div>
-        </div>
-      </nav>
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="home.html" class="nav-brand">Traccia Libri</a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="home.html">Home</a></li>
+        <li><a href="libri.html">Tutti i Libri</a></li>
+        <li><a href="miei_libri.html">I Miei Libri</a></li>
+        <li><a href="aggiungi_libro.html">Aggiungi</a></li>
+        <li class="nav-logout"><a href="#" id="logout-link">Esci</a></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-toggle" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
     </div>
   </header>
 
-  <main class="container">
-    <section id="book-section">
+  <main class="page-content" style="max-width:720px;">
+    <div class="card">
       <div id="book-details">
-        <p>Caricamento dettagli del libro in corso...</p>
+        <p style="color:var(--text-3)">Caricamento in corso...</p>
       </div>
-    </section>
+    </div>
   </main>
 
   <footer>
@@ -45,6 +43,11 @@
   </footer>
 
   <script src="firebase-init.js"></script>
+  <script>
+    document.getElementById('nav-toggle').addEventListener('click', () => {
+      document.getElementById('nav-links').classList.toggle('open');
+    });
+  </script>
   <script src="script_scheda.js"></script>
 </body>
 </html>

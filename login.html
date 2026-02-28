@@ -4,25 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Accedi — Traccia Libri Lettura</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
 </head>
-<body class="auth-wrapper">
+<body class="auth-page">
 
   <div class="auth-card">
-    <h1>Traccia Libri</h1>
-    <p class="auth-subtitle">Il tuo spazio di lettura condiviso</p>
+    <div class="auth-card-header">
+      <h1>Traccia Libri</h1>
+      <p>Il tuo spazio di lettura condiviso</p>
+    </div>
 
-    <!-- Tab switcher -->
     <div class="auth-tabs">
       <button class="auth-tab-btn active" id="tab-login">Accedi</button>
       <button class="auth-tab-btn" id="tab-register">Registrati</button>
     </div>
 
-    <!-- Form Login -->
     <form id="login-form" class="auth-form active">
       <label for="login-email">Email</label>
       <input type="email" id="login-email" placeholder="La tua email" required />
@@ -30,10 +30,9 @@
       <label for="login-password">Password</label>
       <input type="password" id="login-password" placeholder="La tua password" required />
 
-      <button type="submit" class="btn-full" id="login-btn">Accedi</button>
+      <button type="submit" class="btn-primary btn-full" id="login-btn">Accedi</button>
     </form>
 
-    <!-- Form Registrazione -->
     <form id="register-form" class="auth-form">
       <label for="register-nickname">Nickname</label>
       <input type="text" id="register-nickname" placeholder="Scegli un nickname" required />
@@ -44,11 +43,11 @@
       <label for="register-password">Password</label>
       <input type="password" id="register-password" placeholder="Minimo 6 caratteri" required />
 
-      <button type="submit" class="btn-full" id="register-btn">Crea account</button>
+      <button type="submit" class="btn-primary btn-full" id="register-btn">Crea account</button>
     </form>
 
-    <div class="auth-footer-link">
-      <a href="index.html" style="color: var(--primary); text-decoration: none;">← Torna alla home</a>
+    <div class="auth-footer">
+      <a href="index.html">Torna alla home</a>
     </div>
   </div>
 
