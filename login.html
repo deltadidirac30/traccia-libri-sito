@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Accedi — Traccia Libri Lettura</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
+</head>
+<body class="auth-wrapper">
+
+  <div class="auth-card">
+    <h1>Traccia Libri</h1>
+    <p class="auth-subtitle">Il tuo spazio di lettura condiviso</p>
+
+    <!-- Tab switcher -->
+    <div class="auth-tabs">
+      <button class="auth-tab-btn active" id="tab-login">Accedi</button>
+      <button class="auth-tab-btn" id="tab-register">Registrati</button>
+    </div>
+
+    <!-- Form Login -->
+    <form id="login-form" class="auth-form active">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" placeholder="La tua email" required />
+
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" placeholder="La tua password" required />
+
+      <button type="submit" class="btn-full" id="login-btn">Accedi</button>
+    </form>
+
+    <!-- Form Registrazione -->
+    <form id="register-form" class="auth-form">
+      <label for="register-nickname">Nickname</label>
+      <input type="text" id="register-nickname" placeholder="Scegli un nickname" required />
+
+      <label for="register-email">Email</label>
+      <input type="email" id="register-email" placeholder="La tua email" required />
+
+      <label for="register-password">Password</label>
+      <input type="password" id="register-password" placeholder="Minimo 6 caratteri" required />
+
+      <button type="submit" class="btn-full" id="register-btn">Crea account</button>
+    </form>
+
+    <div class="auth-footer-link">
+      <a href="index.html" style="color: var(--primary); text-decoration: none;">← Torna alla home</a>
+    </div>
+  </div>
+
+  <script src="firebase-init.js"></script>
+  <script src="script_login.js"></script>
+</body>
+</html>

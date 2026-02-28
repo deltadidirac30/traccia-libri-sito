@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aggiungi Libro — Traccia Libri Lettura</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="title-section">
+        <h1>Aggiungi Libro</h1>
+      </div>
+      <nav>
+        <div class="dropdown">
+          <button class="dropbtn"><span class="menu-icon">☰</span></button>
+          <div class="dropdown-content">
+            <a href="home.html">Home</a>
+            <a href="aggiungi_libro.html">Aggiungi Libro</a>
+            <a href="libri.html">Tutti i Libri</a>
+            <a href="miei_libri.html">I Miei Libri</a>
+            <a href="#" id="logout-link">Esci</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2>Compila la scheda di lettura</h2>
+      <form id="book-form">
+
+        <label for="title">Titolo del libro</label>
+        <input type="text" id="title" placeholder="Inserisci il titolo" required />
+
+        <label for="author">Autore</label>
+        <input type="text" id="author" placeholder="Inserisci l'autore" required />
+
+        <label for="publicationDate">Anno di pubblicazione</label>
+        <input type="number" id="publicationDate" placeholder="Inserisci l'anno" min="0" max="2100" step="1" required />
+
+        <label for="pages">Numero di pagine</label>
+        <input type="number" id="pages" placeholder="Inserisci il numero di pagine" />
+
+        <h3>Stato di lettura</h3>
+
+        <label for="startDate">Inizio lettura</label>
+        <input type="date" id="startDate" />
+
+        <label for="endDate">Fine lettura</label>
+        <input type="date" id="endDate" />
+
+        <label for="quote">Citazione preferita</label>
+        <input type="text" id="quote" placeholder="Inserisci una citazione" />
+
+        <label for="summary">Il libro in una frase</label>
+        <input type="text" id="summary" placeholder="Riassumi il libro in una frase" />
+
+        <label for="notes">Note di lettura / Personaggi memorabili</label>
+        <textarea id="notes" rows="4" placeholder="Aggiungi note o personaggi memorabili"></textarea>
+
+        <button type="submit" id="save-btn">Salva scheda di lettura</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Traccia Libri Lettura. Tutti i diritti riservati.</p>
+  </footer>
+
+  <script src="firebase-init.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
