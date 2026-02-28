@@ -6,41 +6,66 @@ function getBookIdFromUrl() {
 
 function loadBookDetails() {
     const bookId = getBookIdFromUrl();
-    const bookDetailsContainer = document.getElementById('book-details');
+    const container = document.getElementById('book-details');
 
     if (!bookId) {
-        bookDetailsContainer.innerHTML = '<p>ID del libro non valido.</p>';
+        container.innerHTML = '<p>ID del libro non valido.</p>';
         return;
     }
 
     database.ref('books/' + bookId).once('value')
         .then((snapshot) => {
             if (!snapshot.exists()) {
-                bookDetailsContainer.innerHTML = '<p>Libro non trovato.</p>';
+                container.innerHTML = '<p>Libro non trovato.</p>';
                 return;
             }
 
             const book = snapshot.val();
-            bookDetailsContainer.innerHTML = `
-                <h2>${sanitize(book.title)}</h2>
-                <p><strong>Autore:</strong> ${sanitize(book.author)}</p>
-                <p><strong>Aggiunto da:</strong> ${sanitize(book.addedBy)}</p>
-                <p><strong>Anno di pubblicazione:</strong> ${sanitize(book.publicationDate || 'N/A')}</p>
-                <p><strong>Numero di pagine:</strong> ${sanitize(book.pages || 'N/A')}</p>
-                <h3>Stato di lettura</h3>
-                <p><strong>Inizio lettura:</strong> ${sanitize(book.startDate || 'N/A')}</p>
-                <p><strong>Fine lettura:</strong> ${sanitize(book.endDate || 'N/A')}</p>
-                <h3>Citazione preferita</h3>
-                <p>${sanitize(book.quote || 'Nessuna citazione inserita.')}</p>
-                <h3>Il libro in una frase</h3>
-                <p>${sanitize(book.summary || 'Nessuna frase inserita.')}</p>
-                <h3>Note di lettura / Personaggi memorabili</h3>
-                <p>${sanitize(book.notes || 'Nessuna nota inserita.')}</p>
+            container.innerHTML = `
+                <h2 class="book-detail-title">${sanitize(book.title)}</h2>
+                <p class="book-detail-author">di <strong>${sanitize(book.author)}</strong> &nbsp;·&nbsp; Aggiunto da <strong>${sanitize(book.addedBy)}</strong></p>
+
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="d-label">Anno di pubblicazione</div>
+                        <div class="d-value">${sanitize(book.publicationDate || '—')}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="d-label">Numero di pagine</div>
+                        <div class="d-value">${sanitize(book.pages || '—')}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="d-label">Inizio lettura</div>
+                        <div class="d-value">${sanitize(book.startDate || '—')}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="d-label">Fine lettura</div>
+                        <div class="d-value">${sanitize(book.endDate || '—')}</div>
+                    </div>
+                </div>
+
+                ${book.quote ? `
+                <div class="detail-block">
+                    <h3>💬 Citazione preferita</h3>
+                    <p>${sanitize(book.quote)}</p>
+                </div>` : ''}
+
+                ${book.summary ? `
+                <div class="detail-block">
+                    <h3>📝 Il libro in una frase</h3>
+                    <p>${sanitize(book.summary)}</p>
+                </div>` : ''}
+
+                ${book.notes ? `
+                <div class="detail-block">
+                    <h3>🗒️ Note di lettura</h3>
+                    <p>${sanitize(book.notes)}</p>
+                </div>` : ''}
             `;
         })
         .catch((error) => {
-            console.error('Errore durante il caricamento dei dettagli del libro:', error);
-            bookDetailsContainer.innerHTML = '<p>Errore durante il caricamento. Riprova più tardi.</p>';
+            console.error('Errore:', error);
+            container.innerHTML = '<p>Errore durante il caricamento. Riprova più tardi.</p>';
         });
 }
 

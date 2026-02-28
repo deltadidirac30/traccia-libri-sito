@@ -1,13 +1,26 @@
 // firebase-init.js è già caricato prima di questo file
 
+const CARD_GRADIENTS = [
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+    'linear-gradient(135deg, #fd7043 0%, #f06292 100%)',
+    'linear-gradient(135deg, #26c6da 0%, #7c4dff 100%)',
+];
+
 function showConfirm(message, onConfirm) {
     const overlay = document.createElement('div');
     overlay.className = 'confirm-overlay';
     overlay.innerHTML = `
         <div class="confirm-box">
+            <div class="confirm-icon">🗑️</div>
             <p>${sanitize(message)}</p>
+            <p class="confirm-sub">Questa azione non può essere annullata.</p>
             <div class="confirm-actions">
-                <button class="btn-danger" id="confirm-yes">Elimina</button>
+                <button class="btn-danger" id="confirm-yes">Sì, elimina</button>
                 <button class="btn-secondary" id="confirm-no">Annulla</button>
             </div>
         </div>
@@ -22,7 +35,7 @@ function showConfirm(message, onConfirm) {
 
 function loadAllBooks() {
     const booksList = document.getElementById('books-list');
-    booksList.innerHTML = '<p>Caricamento in corso...</p>';
+    booksList.innerHTML = '<p style="color:var(--text-muted);padding:20px 0">Caricamento in corso...</p>';
     const currentUser = auth.currentUser;
 
     database.ref('books').once('value')
@@ -30,40 +43,55 @@ function loadAllBooks() {
             if (!snapshot.exists()) {
                 booksList.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <p>Nessun libro salvato ancora.</p>
+                        <span class="empty-icon">📭</span>
+                        <h3>Nessun libro ancora</h3>
+                        <p>Il gruppo non ha aggiunto nessun libro. Sii il primo!</p>
                         <a href="aggiungi_libro.html" class="btn">Aggiungi il primo libro</a>
                     </div>`;
                 return;
             }
 
             booksList.innerHTML = '';
+            let index = 0;
             snapshot.forEach((childSnapshot) => {
                 const book = childSnapshot.val();
                 const bookId = childSnapshot.key;
-                const createdText = book.createdAt ? new Date(book.createdAt).toLocaleString('it-IT') : 'N/A';
+                const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
+                index++;
 
                 let actionsHtml = '';
                 if (currentUser && book.ownerUid === currentUser.uid) {
                     actionsHtml = `
-                        <button class="edit-button" onclick="editBook('${bookId}')">Modifica scheda</button>
-                        <button class="delete-button" onclick="deleteBook('${bookId}')">✕</button>
+                        <div class="card-actions">
+                            <button class="edit-button" onclick="editBook('${bookId}')">Modifica</button>
+                            <button class="delete-button" onclick="deleteBook('${bookId}')">✕</button>
+                        </div>
                     `;
                 }
 
-                const bookItem = document.createElement('div');
-                bookItem.classList.add('book-item');
-                bookItem.innerHTML = `
-                    <h3>${sanitize(book.title)}</h3>
-                    <p><strong>Autore:</strong> ${sanitize(book.author)}</p>
-                    <p><strong>Aggiunto da:</strong> ${sanitize(book.addedBy)}</p>
-                    <p><strong>Data creazione:</strong> ${sanitize(createdText)}</p>
-                    <div class="book-actions">
-                        <a href="scheda.html?id=${bookId}" class="view-details">Visualizza scheda completa</a>
+                const bookCard = document.createElement('div');
+                bookCard.classList.add('book-card');
+                bookCard.innerHTML = `
+                    <div class="book-card-header" style="background:${gradient}">
+                        <h3>${sanitize(book.title)}</h3>
+                    </div>
+                    <div class="book-card-body">
+                        <div class="meta-row">
+                            <span class="meta-label">Autore</span>
+                            <span class="meta-value">${sanitize(book.author)}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Aggiunto da</span>
+                            <span class="meta-value">${sanitize(book.addedBy)}</span>
+                        </div>
+                        ${book.endDate ? `<div class="meta-row"><span class="meta-label">Fine lettura</span><span class="meta-value">${sanitize(book.endDate)}</span></div>` : ''}
+                    </div>
+                    <div class="book-card-footer">
+                        <a href="scheda.html?id=${bookId}" class="btn-card-view">Scheda completa →</a>
                         ${actionsHtml}
                     </div>
                 `;
-                booksList.appendChild(bookItem);
+                booksList.appendChild(bookCard);
             });
         })
         .catch((error) => {
