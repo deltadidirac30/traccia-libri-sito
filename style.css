@@ -266,13 +266,13 @@ body {
 .link-view {
     font-size: 13px;
     font-weight: 600;
-    color: var(--blue);
+    color: var(--t2);
     text-decoration: none;
     transition: color var(--t);
     white-space: nowrap;
 }
 
-.link-view:hover { color: var(--blue-hover); }
+.link-view:hover { color: var(--t1); text-decoration: underline; }
 
 /* === FORMS === */
 .form-section-label {
@@ -319,8 +319,8 @@ select {
 
 input:focus, textarea:focus, select:focus {
     outline: none;
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(0,113,227,.14);
+    border-color: var(--t2);
+    box-shadow: 0 0 0 3px rgba(0,0,0,.08);
 }
 
 input::placeholder, textarea::placeholder { color: var(--t4); }
@@ -348,13 +348,13 @@ button, .btn {
 }
 
 .btn-primary {
-    background: var(--blue);
+    background: var(--t1);
     color: #fff;
 }
 
 .btn-primary:hover {
-    background: var(--blue-hover);
-    box-shadow: 0 4px 14px rgba(0,113,227,.3);
+    background: var(--t2);
+    box-shadow: 0 4px 14px rgba(0,0,0,.2);
     transform: none;
 }
 
@@ -368,15 +368,15 @@ button, .btn {
 .btn-full { width: 100%; margin-top: 6px; }
 
 button[type="submit"]:not(.auth-tab-btn) {
-    background: var(--blue);
+    background: var(--t1);
     color: #fff;
     padding: 11px 22px;
 }
 
 button[type="submit"]:not(.auth-tab-btn):hover {
-    background: var(--blue-hover);
+    background: var(--t2);
     transform: none;
-    box-shadow: 0 4px 14px rgba(0,113,227,.3);
+    box-shadow: 0 4px 14px rgba(0,0,0,.2);
 }
 
 /* Inline edit/delete */
@@ -387,14 +387,14 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     font-size: 13px;
     font-weight: 500;
     font-family: inherit;
-    color: var(--blue);
+    color: var(--t2);
     cursor: pointer;
     border-radius: var(--r-xs);
-    transition: background var(--t);
+    transition: background var(--t), color var(--t);
     margin: 0;
 }
 
-.edit-button:hover { background: rgba(0,113,227,.08); transform: none; box-shadow: none; }
+.edit-button:hover { background: rgba(0,0,0,.06); color: var(--t1); transform: none; box-shadow: none; }
 
 .delete-button {
     background: none;
@@ -731,95 +731,69 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 }
 
 /* === HOME PAGE === */
-.home-hero {
-    background: #000;
-    padding: 64px 24px 100px;
-    position: relative;
-    overflow: hidden;
+.home-header {
+    padding-bottom: 40px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid var(--border-light);
 }
 
-.home-hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 65% 90% at 15% 60%, rgba(0,113,227,.2) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.home-hero-inner {
-    max-width: 1080px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-}
-
-.home-hero-eyebrow {
+.home-eyebrow {
     display: block;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--blue);
+    color: var(--t4);
     text-transform: uppercase;
-    letter-spacing: .8px;
-    margin-bottom: 14px;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
 }
 
-.home-hero h1 {
-    font-size: clamp(34px, 5vw, 56px);
+.home-header h1 {
+    font-size: clamp(36px, 5vw, 52px);
     font-weight: 700;
-    color: #fff;
+    color: var(--t1);
     letter-spacing: -1.5px;
     line-height: 1.1;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
-.home-hero-sub {
-    font-size: 17px;
-    color: rgba(255,255,255,.42);
+.home-header-sub {
+    font-size: 16px;
+    color: var(--t3);
     margin: 0;
-}
-
-.home-main {
-    max-width: 1080px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 0 24px 60px;
-    flex: 1;
 }
 
 .home-nav-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-top: -48px;
-    position: relative;
-    z-index: 10;
+    gap: 16px;
 }
 
 .home-nav-card {
     background: var(--surface);
     border: 1px solid var(--border-light);
     border-radius: var(--r);
-    padding: 28px 24px 22px;
+    padding: 32px 28px 26px;
     text-decoration: none;
-    box-shadow: var(--sh-md);
-    transition: box-shadow var(--t), transform var(--t);
+    box-shadow: var(--sh-sm);
+    transition: box-shadow var(--t), transform var(--t), border-color var(--t);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 170px;
+    min-height: 180px;
 }
 
 .home-nav-card:hover {
-    box-shadow: var(--sh-lg);
+    box-shadow: var(--sh-md);
     transform: translateY(-3px);
+    border-color: var(--border);
 }
 
 .home-nav-card h3 {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 700;
     color: var(--t1);
     margin-bottom: 8px;
-    letter-spacing: -.2px;
+    letter-spacing: -.3px;
 }
 
 .home-nav-card p {
@@ -832,12 +806,12 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 .home-nav-arrow {
     display: block;
     font-size: 18px;
-    color: var(--blue);
-    margin-top: 20px;
-    transition: transform var(--t);
+    color: var(--t4);
+    margin-top: 24px;
+    transition: transform var(--t), color var(--t);
 }
 
-.home-nav-card:hover .home-nav-arrow { transform: translateX(5px); }
+.home-nav-card:hover .home-nav-arrow { transform: translateX(5px); color: var(--t2); }
 
 /* === BOOK DETAIL === */
 .book-detail-header {
@@ -914,7 +888,7 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     color: var(--t1);
     font-style: italic;
     line-height: 1.7;
-    border-left: 3px solid var(--blue);
+    border-left: 3px solid var(--border);
     padding-left: 18px;
     margin: 0;
 }
@@ -1054,7 +1028,6 @@ footer {
 /* === RESPONSIVE — Tablet === */
 @media (max-width: 900px) {
     .home-nav-grid { grid-template-columns: 1fr 1fr; }
-    .home-hero h1  { letter-spacing: -1px; }
 }
 
 /* === RESPONSIVE — Mobile === */
@@ -1074,10 +1047,9 @@ footer {
     #books-list      { grid-template-columns: 1fr; gap: 10px; }
 
     /* Home */
-    .home-hero       { padding: 44px 16px 80px; }
-    .home-nav-grid   { grid-template-columns: 1fr; gap: 10px; margin-top: -36px; }
+    .home-header     { padding-bottom: 28px; margin-bottom: 24px; }
+    .home-nav-grid   { grid-template-columns: 1fr; gap: 10px; }
     .home-nav-card   { min-height: auto; padding: 22px 20px 18px; }
-    .home-main       { padding: 0 16px 48px; }
 
     /* Detail */
 

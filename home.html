@@ -30,32 +30,30 @@
     </div>
   </header>
 
-  <section class="home-hero">
-    <div class="home-hero-inner">
-      <span class="home-hero-eyebrow">Il tuo spazio di lettura</span>
+  <main class="page-content">
+    <div class="home-header">
+      <span class="home-eyebrow">Il tuo spazio di lettura</span>
       <h1 id="welcome-heading">Benvenuto</h1>
-      <p id="welcome-message" class="home-hero-sub"></p>
+      <p id="welcome-message" class="home-header-sub"></p>
     </div>
-  </section>
 
-  <main class="home-main">
     <div class="home-nav-grid">
       <a href="libri.html" class="home-nav-card">
-        <div class="home-nav-card-body">
+        <div>
           <h3>Tutti i Libri</h3>
           <p>Esplora il catalogo completo del gruppo</p>
         </div>
         <span class="home-nav-arrow">&#8594;</span>
       </a>
       <a href="miei_libri.html" class="home-nav-card">
-        <div class="home-nav-card-body">
+        <div>
           <h3>I Miei Libri</h3>
           <p>Gestisci le tue schede di lettura</p>
         </div>
         <span class="home-nav-arrow">&#8594;</span>
       </a>
       <a href="aggiungi_libro.html" class="home-nav-card">
-        <div class="home-nav-card-body">
+        <div>
           <h3>Aggiungi Libro</h3>
           <p>Compila una nuova scheda di lettura</p>
         </div>
@@ -81,7 +79,7 @@
           const nickname = data && data.nickname ? data.nickname : user.email;
           document.getElementById('welcome-heading').textContent = 'Benvenuto, ' + nickname;
           document.getElementById('welcome-message').textContent =
-            'Ecco il tuo spazio per tenere traccia dei libri letti dal gruppo.';
+            'Tieni traccia di ogni libro che leggi con il tuo gruppo.';
         });
       } else {
         window.location.href = 'login.html';
