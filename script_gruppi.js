@@ -33,14 +33,13 @@ async function loadGroups() {
         .order('joined_at', { ascending: false });
 
     if (error) {
-        groupsList.innerHTML = '<p>Errore durante il caricamento dei gruppi.</p>';
         console.error(error);
-        return;
     }
 
     if (!memberships || memberships.length === 0) {
         groupsList.innerHTML = `
             <div class="empty-state" style="grid-column:unset;padding:40px 0;">
+                <div style="font-size:3rem;margin-bottom:12px;">👥</div>
                 <h3>Non sei ancora in nessun gruppo</h3>
                 <p>Crea un nuovo gruppo o unisciti a uno esistente con un codice invito.</p>
             </div>`;
