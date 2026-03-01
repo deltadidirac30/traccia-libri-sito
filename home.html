@@ -20,7 +20,7 @@
         <li><a href="miei_libri.html">I Miei Libri</a></li>
         <li><a href="gruppi.html">Gruppi</a></li>
         <li><a href="aggiungi_libro.html">Aggiungi</a></li>
-        <li class="nav-logout"><a href="#" id="logout-link">Esci</a></li>
+        <li id="nav-profile-slot"></li>
       </ul>
       <button class="nav-hamburger" id="nav-toggle" aria-label="Menu">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -68,27 +68,6 @@
       </a>
     </div>
 
-    <!-- Cambia password -->
-    <div style="margin-top:40px;max-width:480px;">
-      <button class="btn-secondary" id="toggle-pwd-btn" style="font-size:.875rem;">Cambia password</button>
-      <div id="change-pwd-wrapper" style="display:none;margin-top:16px;" class="card">
-        <div class="edit-card-header">
-          <h2>Nuova password</h2>
-        </div>
-        <form id="change-pwd-form">
-          <label for="current-pwd">Password attuale</label>
-          <input type="password" id="current-pwd" placeholder="Inserisci la password attuale" required />
-          <label for="new-pwd">Nuova password</label>
-          <input type="password" id="new-pwd" placeholder="Minimo 6 caratteri" required minlength="6" />
-          <label for="confirm-pwd">Conferma nuova password</label>
-          <input type="password" id="confirm-pwd" placeholder="Ripeti la nuova password" required minlength="6" />
-          <div style="display:flex;gap:8px;margin-top:4px;">
-            <button type="submit" class="btn-primary" id="save-pwd-btn">Salva</button>
-            <button type="button" class="btn-secondary" id="cancel-pwd-btn">Annulla</button>
-          </div>
-        </form>
-      </div>
-    </div>
   </main>
 
   <footer>
@@ -100,57 +79,11 @@
       document.getElementById('nav-links').classList.toggle('open');
     });
 
-    document.getElementById('logout-link').addEventListener('click', async (e) => {
-      e.preventDefault();
-      await db.auth.signOut();
-      window.location.href = 'login.html';
-    });
-
-    // Cambia password
-    document.getElementById('toggle-pwd-btn').addEventListener('click', () => {
-      document.getElementById('change-pwd-wrapper').style.display = 'block';
-      document.getElementById('toggle-pwd-btn').style.display = 'none';
-    });
-    document.getElementById('cancel-pwd-btn').addEventListener('click', () => {
-      document.getElementById('change-pwd-wrapper').style.display = 'none';
-      document.getElementById('toggle-pwd-btn').style.display = '';
-      document.getElementById('change-pwd-form').reset();
-    });
-    document.getElementById('change-pwd-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const currentPwd = document.getElementById('current-pwd').value;
-      const newPwd     = document.getElementById('new-pwd').value;
-      const confirm    = document.getElementById('confirm-pwd').value;
-      const btn        = document.getElementById('save-pwd-btn');
-      if (newPwd !== confirm) { showToast('Le nuove password non coincidono.', 'error'); return; }
-      btn.disabled  = true;
-      btn.innerHTML = '<span class="spinner"></span>';
-      // Verifica la password attuale ri-autenticando l'utente
-      const { data: { session } } = await db.auth.getSession();
-      const { error: authErr } = await db.auth.signInWithPassword({
-        email: session.user.email,
-        password: currentPwd
-      });
-      if (authErr) {
-        showToast('Password attuale non corretta.', 'error');
-        btn.disabled    = false;
-        btn.textContent = 'Salva';
-        return;
-      }
-      const { error } = await db.auth.updateUser({ password: newPwd });
-      if (error) {
-        showToast('Errore: ' + error.message, 'error');
-        btn.disabled    = false;
-        btn.textContent = 'Salva';
-      } else {
-        showToast('Password aggiornata!', 'success');
-        document.getElementById('cancel-pwd-btn').click();
-      }
-    });
-
     (async () => {
       const { data: { session } } = await db.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
+
+      await initNavbar();
 
       const { data: profile } = await db
         .from('profiles')

@@ -2,24 +2,6 @@
 
 let currentUser = null;
 
-// --- Dialogo di conferma generico ---
-function showConfirm(message, onConfirm) {
-    const overlay = document.createElement('div');
-    overlay.className = 'confirm-overlay';
-    overlay.innerHTML = `
-        <div class="confirm-box">
-            <p>${sanitize(message)}</p>
-            <p class="confirm-sub">Questa azione non può essere annullata.</p>
-            <div class="confirm-actions">
-                <button class="btn-secondary" id="confirm-no">Annulla</button>
-                <button class="btn-primary" style="background:var(--red)" id="confirm-yes">Elimina</button>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
-    overlay.querySelector('#confirm-yes').addEventListener('click', () => { overlay.remove(); onConfirm(); });
-    overlay.querySelector('#confirm-no').addEventListener('click', () => overlay.remove());
-}
-
 // --- Carica i libri dell'utente ---
 async function loadMyBooks() {
     const booksList = document.getElementById('books-list');
@@ -146,15 +128,10 @@ document.getElementById('cancel-edit-button').addEventListener('click', () => {
     document.getElementById('edit-section').style.display = 'none';
 });
 
-document.getElementById('logout-link').addEventListener('click', async (e) => {
-    e.preventDefault();
-    await db.auth.signOut();
-    window.location.href = 'login.html';
-});
-
 // --- Inizializzazione ---
 (async () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
+    await initNavbar();
     await loadMyBooks();
 })();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scheda Libro — Traccia Libri Lettura</title>
+  <title>Stanza Gruppo — Traccia Libri Lettura</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +18,7 @@
         <li><a href="home.html">Home</a></li>
         <li><a href="libri.html">Tutti i Libri</a></li>
         <li><a href="miei_libri.html">I Miei Libri</a></li>
-        <li><a href="gruppi.html">Gruppi</a></li>
+        <li><a href="gruppi.html" class="active">Gruppi</a></li>
         <li><a href="aggiungi_libro.html">Aggiungi</a></li>
         <li id="nav-profile-slot"></li>
       </ul>
@@ -31,11 +31,11 @@
   </header>
 
   <main class="page-content">
-    <div class="card">
-      <div id="book-details">
-        <p style="color:var(--t3)">Caricamento in corso...</p>
-      </div>
+    <div id="group-header">
+      <p style="color:var(--t3)">Caricamento...</p>
     </div>
+    <div id="books-container" style="margin-top:24px;"></div>
+    <div id="members-container" style="margin-top:32px;"></div>
   </main>
 
   <footer>
@@ -47,6 +47,6 @@
       document.getElementById('nav-links').classList.toggle('open');
     });
   </script>
-  <script src="script_scheda.js"></script>
+  <script src="script_stanza_gruppo.js"></script>
 </body>
 </html>

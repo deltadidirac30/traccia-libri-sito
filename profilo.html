@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profilo — Traccia Libri Lettura</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabaseClient.js"></script>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="home.html" class="nav-brand">Traccia Libri</a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="home.html">Home</a></li>
+        <li><a href="libri.html">Tutti i Libri</a></li>
+        <li><a href="miei_libri.html">I Miei Libri</a></li>
+        <li><a href="gruppi.html">Gruppi</a></li>
+        <li><a href="aggiungi_libro.html">Aggiungi</a></li>
+        <li id="nav-profile-slot"></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-toggle" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="page-header">
+      <h1>Il tuo Profilo</h1>
+    </div>
+
+    <!-- Nickname -->
+    <div class="card" style="max-width:520px;margin-bottom:20px;">
+      <div class="edit-card-header"><h2>Nickname</h2></div>
+      <form id="nickname-form">
+        <label for="new-nickname">Nuovo nickname</label>
+        <input type="text" id="new-nickname" placeholder="Il tuo nome nel gruppo" required />
+        <button type="submit" class="btn-primary" id="save-nickname-btn">Salva</button>
+      </form>
+    </div>
+
+    <!-- Cambia email -->
+    <div class="card" style="max-width:520px;margin-bottom:20px;">
+      <div class="edit-card-header"><h2>Cambia email</h2></div>
+      <form id="email-form">
+        <label for="current-email">Email attuale</label>
+        <input type="email" id="current-email" disabled />
+        <label for="new-email">Nuova email</label>
+        <input type="email" id="new-email" placeholder="nuova@email.com" required />
+        <label for="email-pwd">Password attuale (per conferma)</label>
+        <input type="password" id="email-pwd" placeholder="Inserisci la password" required />
+        <button type="submit" class="btn-primary" id="save-email-btn">Salva email</button>
+      </form>
+    </div>
+
+    <!-- Cambia password -->
+    <div class="card" style="max-width:520px;">
+      <div class="edit-card-header"><h2>Cambia password</h2></div>
+      <form id="pwd-form">
+        <label for="current-pwd">Password attuale</label>
+        <input type="password" id="current-pwd" placeholder="Password attuale" required />
+        <label for="new-pwd">Nuova password</label>
+        <input type="password" id="new-pwd" placeholder="Minimo 6 caratteri" required minlength="6" />
+        <label for="confirm-pwd">Conferma nuova password</label>
+        <input type="password" id="confirm-pwd" placeholder="Ripeti la nuova password" required minlength="6" />
+        <button type="submit" class="btn-primary" id="save-pwd-btn">Salva password</button>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Traccia Libri Lettura. Tutti i diritti riservati.</p>
+  </footer>
+
+  <script>
+    document.getElementById('nav-toggle').addEventListener('click', () => {
+      document.getElementById('nav-links').classList.toggle('open');
+    });
+  </script>
+  <script src="script_profilo.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scheda Libro — Traccia Libri Lettura</title>
+  <title>La mia Attività — Traccia Libri Lettura</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -31,9 +31,33 @@
   </header>
 
   <main class="page-content">
-    <div class="card">
-      <div id="book-details">
-        <p style="color:var(--t3)">Caricamento in corso...</p>
+    <div class="page-header">
+      <h1>La mia Attività</h1>
+    </div>
+
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat-card"><div class="stat-value" id="stat-books">—</div><div class="stat-label">Libri caricati</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-groups">—</div><div class="stat-label">Gruppi</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-comments">—</div><div class="stat-label">Commenti scritti</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-likes">—</div><div class="stat-label">Like dati</div></div>
+    </div>
+
+    <div style="margin-top:32px;display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+      <div>
+        <div class="section-title">Ultimi commenti scritti</div>
+        <div class="activity-list" id="list-comments-sent"></div>
+      </div>
+      <div>
+        <div class="section-title">Ultimi commenti ricevuti</div>
+        <div class="activity-list" id="list-comments-received"></div>
+      </div>
+      <div>
+        <div class="section-title">Ultimi like dati</div>
+        <div class="activity-list" id="list-likes-sent"></div>
+      </div>
+      <div>
+        <div class="section-title">Ultimi like ricevuti</div>
+        <div class="activity-list" id="list-likes-received"></div>
       </div>
     </div>
   </main>
@@ -47,6 +71,6 @@
       document.getElementById('nav-links').classList.toggle('open');
     });
   </script>
-  <script src="script_scheda.js"></script>
+  <script src="script_attivita.js"></script>
 </body>
 </html>

@@ -2,24 +2,6 @@
 
 let currentUser = null;
 
-// --- Dialogo di conferma generico ---
-function showConfirm(message, onConfirm) {
-    const overlay = document.createElement('div');
-    overlay.className = 'confirm-overlay';
-    overlay.innerHTML = `
-        <div class="confirm-box">
-            <p>${sanitize(message)}</p>
-            <p class="confirm-sub">Questa azione non può essere annullata.</p>
-            <div class="confirm-actions">
-                <button class="btn-secondary" id="confirm-no">Annulla</button>
-                <button class="btn-primary" style="background:var(--red)" id="confirm-yes">Elimina</button>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
-    overlay.querySelector('#confirm-yes').addEventListener('click', () => { overlay.remove(); onConfirm(); });
-    overlay.querySelector('#confirm-no').addEventListener('click', () => overlay.remove());
-}
-
 // --- Carica i libri condivisi nei gruppi dell'utente ---
 async function loadGroupBooks() {
     const booksList = document.getElementById('books-list');
@@ -50,9 +32,26 @@ async function loadGroupBooks() {
 
     booksList.innerHTML = '';
 
+    // Batch carica like e commenti
+    const bookIds = books.map(b => b.id);
+    const [{ data: allLikes }, { data: myLikes }, { data: allComments }] = await Promise.all([
+        db.from('book_likes').select('book_id').in('book_id', bookIds),
+        db.from('book_likes').select('book_id').in('book_id', bookIds).eq('user_id', currentUser.id),
+        db.from('book_comments').select('book_id').in('book_id', bookIds)
+    ]);
+
+    const likeCounts    = {};
+    const commentCounts = {};
+    const myLikedSet    = new Set(myLikes?.map(l => l.book_id) ?? []);
+    for (const l of allLikes ?? []) likeCounts[l.book_id] = (likeCounts[l.book_id] ?? 0) + 1;
+    for (const c of allComments ?? []) commentCounts[c.book_id] = (commentCounts[c.book_id] ?? 0) + 1;
+
     for (const book of books) {
-        const isOwner   = book.owner_id === currentUser?.id;
-        const groupName = book.groups?.name ?? '';
+        const isOwner      = book.owner_id === currentUser?.id;
+        const groupName    = book.groups?.name ?? '';
+        const liked        = myLikedSet.has(book.id);
+        const likeCount    = likeCounts[book.id] ?? 0;
+        const commentCount = commentCounts[book.id] ?? 0;
 
         const actionsHtml = isOwner ? `
             <div class="book-card-actions">
@@ -73,10 +72,39 @@ async function loadGroupBooks() {
             <div class="book-card-footer">
                 <a href="scheda.html?id=${book.id}" class="link-view">Visualizza scheda</a>
                 ${actionsHtml}
+            </div>
+            <div class="social-bar">
+                <button class="like-btn ${liked ? 'liked' : ''}" data-book-id="${book.id}">
+                    ${liked ? '♥' : '♡'} <span class="like-num">${likeCount}</span>
+                </button>
+                <a href="scheda.html?id=${book.id}" class="comment-toggle-btn">
+                    💬 ${commentCount}
+                </a>
             </div>`;
         booksList.appendChild(card);
     }
+
 }
+
+// Like toggle via event delegation (un solo listener sull'elemento stabile)
+document.getElementById('books-list').addEventListener('click', async (e) => {
+    const likeBtn = e.target.closest('.like-btn');
+    if (!likeBtn || !currentUser) return;
+    likeBtn.disabled = true;
+    const bookId   = likeBtn.dataset.bookId;
+    const wasLiked = likeBtn.classList.contains('liked');
+    const countEl  = likeBtn.querySelector('.like-num');
+    if (wasLiked) {
+        await db.from('book_likes').delete().eq('book_id', bookId).eq('user_id', currentUser.id);
+        likeBtn.classList.remove('liked');
+        likeBtn.innerHTML = `♡ <span class="like-num">${Math.max(0, parseInt(countEl.textContent) - 1)}</span>`;
+    } else {
+        await db.from('book_likes').insert({ book_id: bookId, user_id: currentUser.id });
+        likeBtn.classList.add('liked');
+        likeBtn.innerHTML = `♥ <span class="like-num">${parseInt(countEl.textContent) + 1}</span>`;
+    }
+    likeBtn.disabled = false;
+});
 
 // --- Elimina libro ---
 function deleteBook(bookId) {
@@ -148,15 +176,10 @@ document.getElementById('cancel-edit-button').addEventListener('click', () => {
     document.getElementById('edit-section').style.display = 'none';
 });
 
-document.getElementById('logout-link').addEventListener('click', async (e) => {
-    e.preventDefault();
-    await db.auth.signOut();
-    window.location.href = 'login.html';
-});
-
 // --- Inizializzazione ---
 (async () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
+    await initNavbar();
     await loadGroupBooks();
 })();

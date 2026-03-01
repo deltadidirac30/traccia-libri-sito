@@ -17,16 +17,10 @@ let userGroups   = [];
         .single();
     userNickname = profile?.nickname ?? currentUser.email;
 
+    await initNavbar();
     // Popola il dropdown dei gruppi
     await caricaGruppi();
 })();
-
-// Logout
-document.getElementById('logout-link')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    await db.auth.signOut();
-    window.location.href = 'login.html';
-});
 
 // --- Carica i gruppi dell'utente per il selettore visibilità ---
 async function caricaGruppi() {

@@ -267,3 +267,123 @@ BEGIN
     );
 END;
 $$;
+
+
+-- -----------------------------------------------------------------------
+-- 10. MIGRATION 001 — Ruoli gruppo, Likes, Commenti
+--     Esegui questo blocco nel SQL Editor di Supabase dopo lo schema base.
+-- -----------------------------------------------------------------------
+
+-- Colonna role su group_members
+ALTER TABLE public.group_members
+    ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'member'
+    CHECK (role IN ('admin', 'member'));
+
+-- Backfill: il creatore del gruppo diventa admin
+UPDATE public.group_members gm
+SET role = 'admin'
+FROM public.groups g
+WHERE gm.group_id = g.id AND gm.user_id = g.created_by;
+
+-- Aggiorna join_group_by_invite: inserisce esplicitamente role='member'
+DROP FUNCTION IF EXISTS public.join_group_by_invite(text);
+CREATE OR REPLACE FUNCTION public.join_group_by_invite(p_invite text)
+RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_group_id UUID; v_group_name TEXT;
+BEGIN
+    SELECT id, name INTO v_group_id, v_group_name FROM public.groups WHERE invite_code = p_invite;
+    IF v_group_id IS NULL THEN RAISE EXCEPTION 'Codice invito non valido'; END IF;
+    INSERT INTO public.group_members (group_id, user_id, role)
+    VALUES (v_group_id, auth.uid(), 'member') ON CONFLICT DO NOTHING;
+    RETURN jsonb_build_object('group_id', v_group_id, 'group_name', v_group_name);
+END; $$;
+
+-- Tabella book_likes
+CREATE TABLE IF NOT EXISTS public.book_likes (
+    book_id    UUID NOT NULL REFERENCES public.books(id)    ON DELETE CASCADE,
+    user_id    UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (book_id, user_id)
+);
+ALTER TABLE public.book_likes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "book_likes: lettura"
+    ON public.book_likes FOR SELECT TO authenticated USING (true);
+CREATE POLICY "book_likes: inserimento"
+    ON public.book_likes FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+CREATE POLICY "book_likes: eliminazione"
+    ON public.book_likes FOR DELETE TO authenticated USING (user_id = auth.uid());
+
+-- Tabella book_comments
+CREATE TABLE IF NOT EXISTS public.book_comments (
+    id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    book_id    UUID        NOT NULL REFERENCES public.books(id)    ON DELETE CASCADE,
+    user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    content    TEXT        NOT NULL CHECK (char_length(content) BETWEEN 1 AND 1000),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE public.book_comments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "book_comments: lettura"
+    ON public.book_comments FOR SELECT TO authenticated USING (true);
+CREATE POLICY "book_comments: inserimento"
+    ON public.book_comments FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+CREATE POLICY "book_comments: eliminazione"
+    ON public.book_comments FOR DELETE TO authenticated USING (user_id = auth.uid());
+
+-- Espandi policy DELETE books: anche admin del gruppo può eliminare
+DROP POLICY IF EXISTS "books: eliminazione" ON public.books;
+CREATE POLICY "books: eliminazione"
+    ON public.books FOR DELETE TO authenticated
+    USING (
+        owner_id = auth.uid()
+        OR (
+            visibility = 'group' AND group_id IS NOT NULL
+            AND EXISTS (
+                SELECT 1 FROM public.group_members gm
+                WHERE gm.group_id = books.group_id
+                  AND gm.user_id  = auth.uid()
+                  AND gm.role     = 'admin'
+            )
+        )
+    );
+
+-- RPC: get_group_members (SECURITY DEFINER — evita problemi RLS self-join)
+DROP FUNCTION IF EXISTS public.get_group_members(UUID);
+CREATE OR REPLACE FUNCTION public.get_group_members(p_group_id UUID)
+RETURNS TABLE(user_id UUID, nickname TEXT, role TEXT, joined_at TIMESTAMPTZ)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM public.group_members
+        WHERE group_id = p_group_id AND user_id = auth.uid()
+    ) THEN RAISE EXCEPTION 'Accesso non autorizzato al gruppo'; END IF;
+
+    RETURN QUERY
+        SELECT gm.user_id, p.nickname, gm.role, gm.joined_at
+        FROM public.group_members gm
+        JOIN public.profiles p ON p.id = gm.user_id
+        WHERE gm.group_id = p_group_id
+        ORDER BY gm.role DESC, gm.joined_at ASC;
+END; $$;
+
+-- RPC: remove_group_member (solo admin può rimuovere altri)
+DROP FUNCTION IF EXISTS public.remove_group_member(UUID, UUID);
+CREATE OR REPLACE FUNCTION public.remove_group_member(p_group_id UUID, p_target UUID)
+RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE caller_role TEXT;
+BEGIN
+    SELECT role INTO caller_role FROM public.group_members
+    WHERE group_id = p_group_id AND user_id = auth.uid();
+    IF caller_role IS NULL THEN RAISE EXCEPTION 'Non sei membro di questo gruppo'; END IF;
+    IF caller_role != 'admin' AND p_target != auth.uid()
+        THEN RAISE EXCEPTION 'Solo un admin può rimuovere altri membri'; END IF;
+    DELETE FROM public.group_members WHERE group_id = p_group_id AND user_id = p_target;
+END; $$;
+
+-- Indici per le nuove tabelle
+CREATE INDEX IF NOT EXISTS book_likes_book_idx    ON public.book_likes(book_id);
+CREATE INDEX IF NOT EXISTS book_likes_user_idx    ON public.book_likes(user_id);
+CREATE INDEX IF NOT EXISTS book_comments_book_idx ON public.book_comments(book_id);
+CREATE INDEX IF NOT EXISTS book_comments_user_idx ON public.book_comments(user_id);
+CREATE INDEX IF NOT EXISTS gm_role_idx            ON public.group_members(group_id, role);
