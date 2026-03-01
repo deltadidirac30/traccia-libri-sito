@@ -33,17 +33,16 @@ async function loadMyBooks() {
         .order('created_at', { ascending: false });
 
     if (error) {
-        booksList.innerHTML = '<p>Errore durante il caricamento. Riprova più tardi.</p>';
         console.error(error);
-        return;
     }
 
     if (!books || books.length === 0) {
         booksList.innerHTML = `
             <div class="empty-state">
-                <h3>Nessun libro ancora</h3>
-                <p>Non hai ancora aggiunto nessun libro.</p>
-                <a href="aggiungi_libro.html" class="btn-primary btn">Aggiungi il tuo primo libro</a>
+                <div style="font-size:3rem;margin-bottom:12px;">📚</div>
+                <h3>La tua libreria è vuota</h3>
+                <p>Non hai ancora aggiunto nessun libro. Inizia adesso — ogni grande libreria parte da un solo libro!</p>
+                <a href="aggiungi_libro.html" class="btn-primary btn">Aggiungi il primo libro</a>
             </div>`;
         return;
     }

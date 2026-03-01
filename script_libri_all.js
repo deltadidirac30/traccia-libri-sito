@@ -34,17 +34,16 @@ async function loadGroupBooks() {
         .order('created_at', { ascending: false });
 
     if (error) {
-        booksList.innerHTML = '<p>Errore durante il caricamento. Riprova più tardi.</p>';
         console.error(error);
-        return;
     }
 
     if (!books || books.length === 0) {
         booksList.innerHTML = `
             <div class="empty-state">
-                <h3>Nessun libro nel catalogo condiviso</h3>
-                <p>Entra in un gruppo e condividi i tuoi libri, oppure aspetta che i tuoi amici li aggiungano.</p>
-                <a href="gruppi.html" class="btn-primary btn">Gestisci i miei Gruppi</a>
+                <div style="font-size:3rem;margin-bottom:12px;">🔍</div>
+                <h3>Ancora nessun libro condiviso</h3>
+                <p>Unisciti a un gruppo di lettura e inizia a condividere i tuoi libri con gli amici!</p>
+                <a href="gruppi.html" class="btn-primary btn">Vai ai Gruppi</a>
             </div>`;
         return;
     }
