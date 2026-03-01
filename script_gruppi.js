@@ -2,12 +2,6 @@
 
 let currentUser = null;
 
-function copyGroupCode(code) {
-    navigator.clipboard.writeText(code)
-        .then(() => showToast('Codice copiato!', 'success'))
-        .catch(() => showToast('Codice: ' + code, 'info'));
-}
-window.copyGroupCode = copyGroupCode;
 
 // --- Carica e mostra i gruppi dell'utente ---
 async function loadGroups() {
@@ -41,9 +35,9 @@ async function loadGroups() {
         const group   = m.groups;
         const isAdmin = group.created_by === currentUser.id;
 
-        const card = document.createElement('a');
-        card.href      = `stanza_gruppo.html?id=${group.id}`;
+        const card = document.createElement('div');
         card.className = 'group-room-card';
+        card.style.cursor = 'pointer';
         card.innerHTML = `
             <div>
                 <div class="group-room-card-name">${sanitize(group.name)}</div>
@@ -51,11 +45,23 @@ async function loadGroups() {
                 ${isAdmin ? `
                 <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
                     <code style="font-size:12px;color:var(--t2);letter-spacing:0.05em;">${sanitize(group.invite_code)}</code>
-                    <button class="btn-secondary" style="font-size:11px;padding:2px 8px;"
-                            onclick="event.stopPropagation();copyGroupCode('${sanitize(group.invite_code)}')">Copia</button>
+                    <button class="btn-secondary copy-code-btn" data-code="${sanitize(group.invite_code)}"
+                            style="font-size:11px;padding:2px 8px;">Copia</button>
                 </div>` : ''}
             </div>
             <span class="group-room-arrow">&#8594;</span>`;
+
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.copy-code-btn')) {
+                const code = e.target.closest('.copy-code-btn').dataset.code;
+                navigator.clipboard.writeText(code)
+                    .then(() => showToast('Codice copiato!', 'success'))
+                    .catch(() => showToast('Codice: ' + code, 'info'));
+                return;
+            }
+            window.location.href = `stanza_gruppo.html?id=${group.id}`;
+        });
+
         groupsList.appendChild(card);
     }
 }
