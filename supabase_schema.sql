@@ -241,6 +241,8 @@ CREATE TRIGGER on_auth_user_created
 --    SECURITY DEFINER: bypassa RLS per trovare il gruppo tramite invite_code.
 --    Restituisce { group_id, group_name } oppure lancia un'eccezione.
 -- -----------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.join_group_by_invite(text);
+
 CREATE OR REPLACE FUNCTION public.join_group_by_invite(p_invite text)
 RETURNS JSONB
 LANGUAGE plpgsql
