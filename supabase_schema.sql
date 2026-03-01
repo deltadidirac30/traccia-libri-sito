@@ -126,16 +126,12 @@ CREATE POLICY "groups: solo il creatore può eliminare"
 -- -----------------------------------------------------------------------
 -- 5. POLICIES — group_members
 -- -----------------------------------------------------------------------
-CREATE POLICY "group_members: visibili tra membri dello stesso gruppo"
+-- Nota: policy volutamente semplice (no self-join) per evitare ricorsione RLS.
+-- Ogni utente vede solo le proprie iscrizioni — sufficiente per tutte le funzionalità.
+CREATE POLICY "group_members: visibili i propri"
     ON public.group_members FOR SELECT
     TO authenticated
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.group_members me
-            WHERE me.group_id = group_members.group_id
-              AND me.user_id  = auth.uid()
-        )
-    );
+    USING (user_id = auth.uid());
 
 CREATE POLICY "group_members: il creatore può aggiungere"
     ON public.group_members FOR INSERT
