@@ -156,7 +156,11 @@ async function loadRoom() {
     const [groupResult, booksResult, membersResult] = await Promise.all([
         db.from('groups').select('*').eq('id', groupId).single(),
         db.from('books').select('*').contains('group_ids', [groupId]).eq('visibility', 'group').order('created_at', { ascending: false }),
-        db.rpc('get_group_members', { p_group_id: groupId })
+        db.from('group_members')
+            .select('user_id, role, joined_at, profiles(nickname)')
+            .eq('group_id', groupId)
+            .order('role', { ascending: false })
+            .order('joined_at', { ascending: true })
     ]);
 
     const group   = groupResult.data;
@@ -323,7 +327,7 @@ async function loadRoom() {
         <ul class="room-member-list">
             ${members.map(m => `
                 <li class="room-member-item">
-                    <span class="room-member-nick">${sanitize(m.nickname)}</span>
+                    <span class="room-member-nick">${sanitize(m.profiles?.nickname ?? '?')}</span>
                     <span class="room-member-role ${m.role === 'admin' ? 'role-admin' : 'role-member'}">
                         ${m.role === 'admin' ? 'Admin' : 'Membro'}
                     </span>

@@ -591,3 +591,24 @@ BEGIN
     DELETE FROM auth.users WHERE id = auth.uid();
 END;
 $$;
+
+-- -----------------------------------------------------------------------
+-- 14. MIGRATION 005 — RLS per lettura membri e profili nel gruppo
+--     Esegui nel SQL Editor di Supabase.
+-- -----------------------------------------------------------------------
+
+-- I membri possono vedere gli altri membri dei gruppi a cui appartengono
+DROP POLICY IF EXISTS "group_members: select" ON public.group_members;
+CREATE POLICY "group_members: select" ON public.group_members
+FOR SELECT TO authenticated
+USING (
+    group_id IN (
+        SELECT gm2.group_id FROM public.group_members gm2
+        WHERE gm2.user_id = auth.uid()
+    )
+);
+
+-- I profili (nickname) sono leggibili da tutti gli utenti autenticati
+DROP POLICY IF EXISTS "profiles: select" ON public.profiles;
+CREATE POLICY "profiles: select" ON public.profiles
+FOR SELECT TO authenticated USING (true);
