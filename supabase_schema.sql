@@ -612,3 +612,23 @@ USING (
 DROP POLICY IF EXISTS "profiles: select" ON public.profiles;
 CREATE POLICY "profiles: select" ON public.profiles
 FOR SELECT TO authenticated USING (true);
+
+-- -----------------------------------------------------------------------
+-- 15. MIGRATION 005b — Hotfix: ricorsione infinita in group_members RLS
+--     Esegui SUBITO nel SQL Editor di Supabase.
+-- -----------------------------------------------------------------------
+
+-- La policy precedente causava ricorsione (subquery sulla stessa tabella).
+-- Fix: usa una funzione SECURITY DEFINER che bypassa la RLS internamente.
+CREATE OR REPLACE FUNCTION public.is_group_member(p_group_id UUID)
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM public.group_members
+        WHERE group_id = p_group_id AND user_id = auth.uid()
+    )
+$$;
+
+DROP POLICY IF EXISTS "group_members: select" ON public.group_members;
+CREATE POLICY "group_members: select" ON public.group_members
+FOR SELECT TO authenticated
+USING (public.is_group_member(group_id));
