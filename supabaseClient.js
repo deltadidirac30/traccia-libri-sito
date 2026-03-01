@@ -60,16 +60,16 @@ function sanitize(str) {
 // -----------------------------------------------------------------------
 // Dialogo di conferma generico (usato da tutte le pagine)
 // -----------------------------------------------------------------------
-function showConfirm(message, onConfirm) {
+function showConfirm(message, onConfirm, confirmLabel = 'Elimina', isDanger = true) {
     const overlay = document.createElement('div');
     overlay.className = 'confirm-overlay';
     overlay.innerHTML = `
         <div class="confirm-box">
             <p>${sanitize(message)}</p>
-            <p class="confirm-sub">Questa azione non può essere annullata.</p>
+            ${isDanger ? '<p class="confirm-sub">Questa azione non può essere annullata.</p>' : ''}
             <div class="confirm-actions">
                 <button class="btn-secondary" id="confirm-no">Annulla</button>
-                <button class="btn-primary" style="background:var(--red)" id="confirm-yes">Elimina</button>
+                <button class="btn-primary" ${isDanger ? 'style="background:var(--red)"' : ''} id="confirm-yes">${sanitize(confirmLabel)}</button>
             </div>
         </div>`;
     document.body.appendChild(overlay);

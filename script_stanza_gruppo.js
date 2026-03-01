@@ -93,7 +93,7 @@ async function promoteToAdmin(groupId, targetUserId) {
             showToast('Membro promosso ad amministratore!', 'success');
             await loadRoom();
         }
-    });
+    }, 'Promuovi', false);
 }
 window.promoteToAdmin = promoteToAdmin;
 
