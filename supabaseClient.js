@@ -4,8 +4,8 @@
 // Spec: supabase.createClient è esposto globalmente dal CDN.
 // =====================================================================
 
-const SUPABASE_URL  = 'https://TUO_PROJECT_ID.supabase.co';   // ← sostituire
-const SUPABASE_ANON = 'TUA_ANON_PUBLIC_KEY';                   // ← sostituire
+const SUPABASE_URL  = 'https://hhltbnrbjvxoisaizirj.supabase.co';   // ← sostituire
+const SUPABASE_ANON = 'sb_publishable_URs-LrkEAjJPqWklquHJtw_hOSKM8UK';                
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
     auth: {
