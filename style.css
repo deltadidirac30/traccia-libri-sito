@@ -1205,22 +1205,19 @@ footer {
 .profile-dd-logout { color: var(--red) !important; }
 .profile-dd-logout:hover { background: rgba(192,57,43,.07) !important; }
 
-/* Mobile: il profile-menu appare dentro nav-links aperto */
+/* Mobile: voci profilo mostrate direttamente nel menu hamburger, senza sotto-dropdown */
 @media (max-width: 768px) {
+    .profile-btn { display: none; }
     .profile-dropdown {
-        position: static; box-shadow: none; border: none;
+        position: static; display: block;
+        box-shadow: none; border: none; border-radius: 0;
+        background: none; width: 100%; padding: 0; min-width: unset;
+    }
+    .profile-dropdown .profile-dd-item {
+        font-size: 16px; padding: 12px 20px;
+        border-radius: 0; text-align: left; display: block; width: 100%;
         border-top: 1px solid var(--border-light);
-        min-width: 100%; border-radius: 0;
-        display: none;
     }
-    .profile-dropdown.open { display: block; }
-    .profile-btn {
-        width: 100%; height: auto; border-radius: 0;
-        background: none; border: none; border-top: 1px solid var(--border-light);
-        padding: 10px 20px; justify-content: flex-start; gap: 10px;
-    }
-    .profile-btn::after { content: 'Profilo'; font-size: 14px; font-weight: 500; color: var(--t2); }
-    .profile-initial { font-size: 14px; }
 }
 
 /* ===================================================================
