@@ -15,7 +15,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 // ── Mappa Firebase UID → Supabase UUID ───────────────────────────────
 const UID_MAP = {
-    'gsPwQRcg4YSHFbMY8ihqBomUqyI3': '0413760f-577b-4f60-8d35-0d67875581bf',
+    'gsPwQRcg4YSHFbMY8ihqBomUqyI3': '767ef85c-fdf9-48f0-81f3-e058af5a3d73',
     // Aggiungi qui gli altri amici quando si registrano
 };
 
