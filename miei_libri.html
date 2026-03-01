@@ -77,12 +77,12 @@
         <label for="edit-visibility">Visibilità</label>
         <select id="edit-visibility" onchange="handleEditVisibilityChange()">
           <option value="private">Solo io (privato)</option>
-          <option value="group">Condividi nel gruppo</option>
+          <option value="group">Condividi nei gruppi</option>
         </select>
 
         <div id="edit-group-wrapper" style="display:none;">
-          <label for="edit-group-id">Gruppo</label>
-          <select id="edit-group-id"></select>
+          <label>Seleziona i gruppi</label>
+          <div id="edit-group-checkboxes"></div>
         </div>
 
         <div style="display:flex;gap:8px;margin-top:4px;">

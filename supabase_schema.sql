@@ -499,3 +499,95 @@ BEGIN
     WHERE group_id = p_group_id AND user_id = p_target;
 END;
 $$;
+
+-- -----------------------------------------------------------------------
+-- 13. MIGRATION 004 — Multi-group support: group_id → group_ids UUID[]
+--     Esegui nel SQL Editor di Supabase.
+-- -----------------------------------------------------------------------
+
+-- 1. Nuova colonna array
+ALTER TABLE public.books ADD COLUMN IF NOT EXISTS group_ids UUID[] NOT NULL DEFAULT '{}';
+
+-- 2. Migra i dati esistenti
+UPDATE public.books SET group_ids = ARRAY[group_id]
+WHERE group_id IS NOT NULL AND visibility = 'group';
+
+-- 3. Rimuovi trigger Migration 003 (referenziava group_id)
+DROP TRIGGER IF EXISTS trg_fix_book_visibility ON public.books;
+DROP FUNCTION IF EXISTS public.fix_book_visibility_on_group_null();
+
+-- 4. Rimuovi vecchia colonna (elimina automaticamente FK e vincoli su di essa)
+ALTER TABLE public.books DROP COLUMN IF EXISTS group_id CASCADE;
+
+-- 5. Nuovo vincolo visibilità (array_length('{}',1) = NULL, soddisfa IS NULL)
+ALTER TABLE public.books DROP CONSTRAINT IF EXISTS books_group_visibility_check;
+ALTER TABLE public.books ADD CONSTRAINT books_group_visibility_check
+    CHECK (
+        (visibility = 'private' AND (array_length(group_ids, 1) IS NULL))
+        OR
+        (visibility = 'group'   AND array_length(group_ids, 1) > 0)
+    );
+
+-- 6. RLS lettura: owner oppure membro di almeno uno dei gruppi del libro
+DROP POLICY IF EXISTS "books: lettura" ON public.books;
+CREATE POLICY "books: lettura" ON public.books FOR SELECT TO authenticated
+    USING (
+        owner_id = auth.uid()
+        OR (visibility = 'group' AND EXISTS (
+            SELECT 1 FROM public.group_members gm
+            WHERE gm.group_id = ANY(books.group_ids) AND gm.user_id = auth.uid()
+        ))
+    );
+
+-- 7. RLS eliminazione: owner oppure admin di uno qualsiasi dei gruppi del libro
+DROP POLICY IF EXISTS "books: eliminazione" ON public.books;
+CREATE POLICY "books: eliminazione" ON public.books FOR DELETE TO authenticated
+    USING (
+        owner_id = auth.uid()
+        OR (visibility = 'group' AND EXISTS (
+            SELECT 1 FROM public.group_members gm
+            WHERE gm.group_id = ANY(books.group_ids) AND gm.user_id = auth.uid() AND gm.role = 'admin'
+        ))
+    );
+
+-- 8. Indice GIN per query efficienti su array
+CREATE INDEX IF NOT EXISTS books_group_ids_gin ON public.books USING gin(group_ids);
+
+-- 9. delete_own_account (v3) — aggiornato per group_ids array
+CREATE OR REPLACE FUNCTION public.delete_own_account()
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_group_id UUID;
+BEGIN
+    FOR v_group_id IN
+        SELECT gm.group_id
+        FROM public.group_members gm
+        WHERE gm.user_id = auth.uid()
+          AND gm.role = 'admin'
+          AND NOT EXISTS (
+              SELECT 1 FROM public.group_members gm2
+              WHERE gm2.group_id = gm.group_id
+                AND gm2.user_id != auth.uid()
+                AND gm2.role = 'admin'
+          )
+    LOOP
+        UPDATE public.books
+        SET group_ids = array_remove(group_ids, v_group_id)
+        WHERE v_group_id = ANY(group_ids) AND owner_id != auth.uid();
+
+        UPDATE public.books
+        SET visibility = 'private'
+        WHERE owner_id != auth.uid()
+          AND visibility = 'group'
+          AND (array_length(group_ids, 1) IS NULL OR array_length(group_ids, 1) = 0);
+
+        DELETE FROM public.groups WHERE id = v_group_id;
+    END LOOP;
+
+    DELETE FROM auth.users WHERE id = auth.uid();
+END;
+$$;

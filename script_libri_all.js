@@ -11,7 +11,7 @@ async function loadGroupBooks() {
     // La RLS filtra automaticamente: l'utente vede solo i libri dei suoi gruppi
     const { data: books, error } = await db
         .from('books')
-        .select('*, groups(name)')
+        .select('*')
         .eq('visibility', 'group')
         .order('created_at', { ascending: false });
 
@@ -48,7 +48,6 @@ async function loadGroupBooks() {
 
     for (const book of books) {
         const isOwner      = book.owner_id === currentUser?.id;
-        const groupName    = book.groups?.name ?? '';
         const liked        = myLikedSet.has(book.id);
         const likeCount    = likeCounts[book.id] ?? 0;
         const commentCount = commentCounts[book.id] ?? 0;
@@ -66,8 +65,7 @@ async function loadGroupBooks() {
             <div class="book-card-author">${sanitize(book.author)}</div>
             <div class="book-card-meta">
                 Aggiunto da ${sanitize(book.added_by)}
-                ${book.end_date  ? ' &middot; ' + sanitize(book.end_date) : ''}
-                ${groupName      ? ' &middot; <em>' + sanitize(groupName) + '</em>' : ''}
+                ${book.end_date ? ' &middot; ' + sanitize(book.end_date) : ''}
             </div>
             <div class="book-card-footer">
                 <a href="scheda.html?id=${book.id}" class="link-view">Visualizza scheda</a>

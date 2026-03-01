@@ -41,8 +41,9 @@ async function loadMyBooks() {
 
     for (const book of books) {
         // Badge visibilità
+        const nGroups = Array.isArray(book.group_ids) ? book.group_ids.length : 0;
         const visibilityBadge = book.visibility === 'group'
-            ? ' &middot; <em>Condiviso nel gruppo</em>'
+            ? ` &middot; <em>Condiviso in ${nGroups} ${nGroups === 1 ? 'gruppo' : 'gruppi'}</em>`
             : '';
 
         const card = document.createElement('div');
@@ -101,21 +102,25 @@ async function editBook(bookId) {
     document.getElementById('edit-summary').value         = book.summary          ?? '';
     document.getElementById('edit-notes').value           = book.notes            ?? '';
 
-    // Visibilità e gruppo
-    const visSelect   = document.getElementById('edit-visibility');
-    const groupSelect = document.getElementById('edit-group-id');
-    const groupWrapper= document.getElementById('edit-group-wrapper');
+    // Visibilità e gruppi
+    const visSelect    = document.getElementById('edit-visibility');
+    const checkboxWrap = document.getElementById('edit-group-checkboxes');
+    const groupWrapper = document.getElementById('edit-group-wrapper');
 
     visSelect.value = book.visibility ?? 'private';
 
+    const currentGroupIds = Array.isArray(book.group_ids) ? book.group_ids : [];
     if (editUserGroups.length === 0) {
-        groupSelect.innerHTML = '<option value="">Nessun gruppo disponibile</option>';
+        checkboxWrap.innerHTML =
+            '<p style="font-size:14px;color:var(--t3);margin:4px 0;">Nessun gruppo disponibile</p>';
     } else {
-        groupSelect.innerHTML = editUserGroups
-            .map(g => `<option value="${g.id}">${sanitize(g.name)}</option>`)
-            .join('');
+        checkboxWrap.innerHTML = editUserGroups.map(g => `
+            <label class="checkbox-label">
+                <input type="checkbox" class="edit-group-checkbox" value="${g.id}"
+                       ${currentGroupIds.includes(g.id) ? 'checked' : ''}>
+                <span>${sanitize(g.name)}</span>
+            </label>`).join('');
     }
-    if (book.group_id) groupSelect.value = book.group_id;
 
     groupWrapper.style.display = book.visibility === 'group' ? 'block' : 'none';
 
@@ -126,12 +131,13 @@ async function editBook(bookId) {
         e.preventDefault();
         const pagesVal   = document.getElementById('edit-pages').value;
         const visibility = document.getElementById('edit-visibility').value;
-        const groupId    = visibility === 'group'
-            ? (document.getElementById('edit-group-id').value || null)
-            : null;
 
-        if (visibility === 'group' && !groupId) {
-            showToast('Seleziona un gruppo o crea/unisciti a uno nella sezione Gruppi.', 'error');
+        const groupIds = visibility === 'group'
+            ? Array.from(document.querySelectorAll('.edit-group-checkbox:checked')).map(cb => cb.value)
+            : [];
+
+        if (visibility === 'group' && groupIds.length === 0) {
+            showToast('Seleziona almeno un gruppo.', 'error');
             return;
         }
 
@@ -147,7 +153,7 @@ async function editBook(bookId) {
             summary:          document.getElementById('edit-summary').value   || null,
             notes:            document.getElementById('edit-notes').value     || null,
             visibility,
-            group_id: groupId,
+            group_ids: groupIds,
         }).eq('id', bookId);
 
         if (updateError) {

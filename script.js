@@ -31,16 +31,18 @@ async function caricaGruppi() {
 
     userGroups = memberships?.map(m => m.groups).filter(Boolean) ?? [];
 
-    const groupSelect = document.getElementById('group-id');
-    if (!groupSelect) return;
+    const container = document.getElementById('group-checkboxes');
+    if (!container) return;
 
     if (userGroups.length === 0) {
-        groupSelect.innerHTML =
-            '<option value="">Nessun gruppo — creane uno nella sezione Gruppi</option>';
+        container.innerHTML =
+            '<p style="font-size:14px;color:var(--t3);margin:4px 0;">Nessun gruppo — creane uno nella sezione Gruppi</p>';
     } else {
-        groupSelect.innerHTML = userGroups
-            .map(g => `<option value="${g.id}">${sanitize(g.name)}</option>`)
-            .join('');
+        container.innerHTML = userGroups.map(g => `
+            <label class="checkbox-label">
+                <input type="checkbox" class="group-checkbox" value="${g.id}">
+                <span>${sanitize(g.name)}</span>
+            </label>`).join('');
     }
 }
 
@@ -68,12 +70,12 @@ if (bookForm) {
         saveBtn.innerHTML = '<span class="spinner"></span> Salvataggio...';
 
         const visibility = document.getElementById('visibility').value;
-        const groupId    = visibility === 'group'
-            ? (document.getElementById('group-id').value || null)
-            : null;
+        const groupIds   = visibility === 'group'
+            ? Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.value)
+            : [];
 
-        if (visibility === 'group' && !groupId) {
-            showToast('Seleziona un gruppo o crea/unisciti a uno nella sezione Gruppi.', 'error');
+        if (visibility === 'group' && groupIds.length === 0) {
+            showToast('Seleziona almeno un gruppo.', 'error');
             saveBtn.disabled    = false;
             saveBtn.textContent = 'Salva scheda';
             return;
@@ -94,7 +96,7 @@ if (bookForm) {
             summary:          document.getElementById('summary').value.trim() || null,
             notes:            document.getElementById('notes').value.trim()   || null,
             visibility,
-            group_id:         groupId,
+            group_ids:        groupIds,
         });
 
         if (error) {

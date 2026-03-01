@@ -155,7 +155,7 @@ async function loadRoom() {
 
     const [groupResult, booksResult, membersResult] = await Promise.all([
         db.from('groups').select('*').eq('id', groupId).single(),
-        db.from('books').select('*').eq('group_id', groupId).eq('visibility', 'group').order('created_at', { ascending: false }),
+        db.from('books').select('*').contains('group_ids', [groupId]).eq('visibility', 'group').order('created_at', { ascending: false }),
         db.rpc('get_group_members', { p_group_id: groupId })
     ]);
 
