@@ -80,6 +80,23 @@ async function loadComments(bookId) {
         </form>`;
 }
 
+// --- Promuovi membro ad admin ---
+async function promoteToAdmin(groupId, targetUserId) {
+    showConfirm('Vuoi rendere questo membro amministratore del gruppo?', async () => {
+        const { error } = await db.rpc('promote_to_admin', {
+            p_group_id: groupId,
+            p_target: targetUserId
+        });
+        if (error) {
+            showToast('Errore durante la promozione.', 'error');
+        } else {
+            showToast('Membro promosso ad amministratore!', 'success');
+            await loadRoom();
+        }
+    });
+}
+window.promoteToAdmin = promoteToAdmin;
+
 // --- Rimuovi membro (solo admin) ---
 async function removeMember(groupId, targetUserId) {
     const { error } = await db.rpc('remove_group_member', {
@@ -311,8 +328,14 @@ async function loadRoom() {
                         ${m.role === 'admin' ? 'Admin' : 'Membro'}
                     </span>
                     ${isAdmin && m.user_id !== currentUser.id
-                        ? `<button class="delete-button" style="font-size:12px;margin-left:auto;"
-                                   onclick="removeMember('${groupId}', '${m.user_id}')">Rimuovi</button>`
+                        ? `<div style="display:flex;gap:6px;margin-left:auto;">
+                               ${m.role === 'member'
+                                   ? `<button class="btn-secondary" style="font-size:12px;padding:4px 10px;"
+                                              onclick="promoteToAdmin('${groupId}', '${m.user_id}')">Promuovi ad admin</button>`
+                                   : ''}
+                               <button class="delete-button" style="font-size:12px;"
+                                       onclick="removeMember('${groupId}', '${m.user_id}')">Rimuovi</button>
+                           </div>`
                         : ''}
                 </li>`).join('')}
         </ul>`;

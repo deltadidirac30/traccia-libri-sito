@@ -394,9 +394,7 @@ CREATE INDEX IF NOT EXISTS gm_role_idx            ON public.group_members(group_
 --     Esegui nel SQL Editor di Supabase.
 -- -----------------------------------------------------------------------
 
--- RPC: delete_own_account
--- SECURITY DEFINER: il client non può eliminare direttamente da auth.users.
--- La cascade elimina automaticamente profiles, books, group_members, likes, commenti.
+-- RPC: delete_own_account (v1 — sostituita da Migration 003)
 CREATE OR REPLACE FUNCTION public.delete_own_account()
 RETURNS VOID
 LANGUAGE plpgsql
@@ -405,5 +403,99 @@ SET search_path = public
 AS $$
 BEGIN
     DELETE FROM auth.users WHERE id = auth.uid();
+END;
+$$;
+
+
+-- -----------------------------------------------------------------------
+-- 12. MIGRATION 003 — Promozione admin, gestione gruppi su eliminazione account
+--     Esegui nel SQL Editor di Supabase.
+-- -----------------------------------------------------------------------
+
+-- Trigger: quando group_id diventa NULL su un libro (es. gruppo eliminato),
+-- imposta automaticamente visibility='private' per rispettare il constraint.
+CREATE OR REPLACE FUNCTION public.fix_book_visibility_on_group_null()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.group_id IS NULL AND NEW.visibility = 'group' THEN
+        NEW.visibility := 'private';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_fix_book_visibility ON public.books;
+CREATE TRIGGER trg_fix_book_visibility
+    BEFORE UPDATE ON public.books
+    FOR EACH ROW
+    EXECUTE FUNCTION public.fix_book_visibility_on_group_null();
+
+-- RPC: delete_own_account (v2 — gestisce i gruppi di cui si è unico admin)
+CREATE OR REPLACE FUNCTION public.delete_own_account()
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_group_id UUID;
+BEGIN
+    -- Per ogni gruppo in cui l'utente è l'UNICO admin:
+    -- rendi privati i libri degli altri membri, poi elimina il gruppo.
+    FOR v_group_id IN
+        SELECT gm.group_id
+        FROM public.group_members gm
+        WHERE gm.user_id = auth.uid()
+          AND gm.role = 'admin'
+          AND NOT EXISTS (
+              SELECT 1 FROM public.group_members gm2
+              WHERE gm2.group_id = gm.group_id
+                AND gm2.user_id != auth.uid()
+                AND gm2.role = 'admin'
+          )
+    LOOP
+        -- I libri degli ALTRI utenti nel gruppo diventano privati
+        UPDATE public.books
+        SET visibility = 'private', group_id = NULL
+        WHERE group_id = v_group_id
+          AND owner_id != auth.uid();
+
+        -- Elimina il gruppo (cascade rimuove i group_members)
+        DELETE FROM public.groups WHERE id = v_group_id;
+    END LOOP;
+
+    -- Per i gruppi con altri admin: la cascade da auth.users rimuoverà
+    -- automaticamente la riga in group_members senza toccare il gruppo.
+
+    -- Elimina l'utente (cascade: profiles → books, group_members, likes, commenti)
+    DELETE FROM auth.users WHERE id = auth.uid();
+END;
+$$;
+
+-- RPC: promote_to_admin — solo un admin può promuovere un membro
+CREATE OR REPLACE FUNCTION public.promote_to_admin(p_group_id UUID, p_target UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    caller_role TEXT;
+BEGIN
+    SELECT role INTO caller_role FROM public.group_members
+    WHERE group_id = p_group_id AND user_id = auth.uid();
+
+    IF caller_role IS NULL THEN RAISE EXCEPTION 'Non sei membro di questo gruppo'; END IF;
+    IF caller_role != 'admin' THEN RAISE EXCEPTION 'Solo un admin può promuovere altri membri'; END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM public.group_members
+        WHERE group_id = p_group_id AND user_id = p_target
+    ) THEN RAISE EXCEPTION 'Utente non trovato nel gruppo'; END IF;
+
+    UPDATE public.group_members SET role = 'admin'
+    WHERE group_id = p_group_id AND user_id = p_target;
 END;
 $$;
