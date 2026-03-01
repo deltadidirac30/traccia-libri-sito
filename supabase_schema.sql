@@ -387,3 +387,23 @@ CREATE INDEX IF NOT EXISTS book_likes_user_idx    ON public.book_likes(user_id);
 CREATE INDEX IF NOT EXISTS book_comments_book_idx ON public.book_comments(book_id);
 CREATE INDEX IF NOT EXISTS book_comments_user_idx ON public.book_comments(user_id);
 CREATE INDEX IF NOT EXISTS gm_role_idx            ON public.group_members(group_id, role);
+
+
+-- -----------------------------------------------------------------------
+-- 11. MIGRATION 002 — Eliminazione account utente
+--     Esegui nel SQL Editor di Supabase.
+-- -----------------------------------------------------------------------
+
+-- RPC: delete_own_account
+-- SECURITY DEFINER: il client non può eliminare direttamente da auth.users.
+-- La cascade elimina automaticamente profiles, books, group_members, likes, commenti.
+CREATE OR REPLACE FUNCTION public.delete_own_account()
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    DELETE FROM auth.users WHERE id = auth.uid();
+END;
+$$;

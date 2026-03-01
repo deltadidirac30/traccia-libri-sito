@@ -105,6 +105,28 @@ document.getElementById('pwd-form').addEventListener('submit', async (e) => {
     btn.textContent = 'Salva password';
 });
 
+// --- Elimina account ---
+document.getElementById('delete-account-btn').addEventListener('click', () => {
+    showConfirm(
+        'Vuoi davvero eliminare il tuo account? Tutti i tuoi libri, commenti e like verranno cancellati per sempre. Questa azione è irreversibile.',
+        async () => {
+            const btn = document.getElementById('delete-account-btn');
+            btn.disabled  = true;
+            btn.innerHTML = '<span class="spinner"></span>';
+
+            const { error } = await db.rpc('delete_own_account');
+            if (error) {
+                showToast('Errore durante l\'eliminazione: ' + error.message, 'error');
+                btn.disabled    = false;
+                btn.textContent = 'Elimina il mio account';
+            } else {
+                await db.auth.signOut();
+                window.location.href = 'index.html';
+            }
+        }
+    );
+});
+
 // --- Inizializzazione ---
 (async () => {
     currentUser = await requireAuth();

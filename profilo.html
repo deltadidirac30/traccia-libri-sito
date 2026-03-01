@@ -60,7 +60,7 @@
     </div>
 
     <!-- Cambia password -->
-    <div class="card" style="max-width:520px;">
+    <div class="card" style="max-width:520px;margin-bottom:20px;">
       <div class="edit-card-header"><h2>Cambia password</h2></div>
       <form id="pwd-form">
         <label for="current-pwd">Password attuale</label>
@@ -71,6 +71,19 @@
         <input type="password" id="confirm-pwd" placeholder="Ripeti la nuova password" required minlength="6" />
         <button type="submit" class="btn-primary" id="save-pwd-btn">Salva password</button>
       </form>
+    </div>
+
+    <!-- Elimina account -->
+    <div class="card danger-zone" style="max-width:520px;">
+      <div class="edit-card-header">
+        <h2 style="color:var(--red);">Elimina account</h2>
+      </div>
+      <p style="font-size:14px;color:var(--t2);margin-bottom:16px;">
+        L'eliminazione è permanente e irreversibile. Tutti i tuoi libri, commenti e like verranno cancellati definitivamente.
+      </p>
+      <button class="delete-button" id="delete-account-btn" style="font-size:14px;padding:10px 20px;">
+        Elimina il mio account
+      </button>
     </div>
   </main>
 
