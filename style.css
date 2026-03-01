@@ -1,28 +1,28 @@
 /* ===================================================================
-   TRACCIA LIBRI LETTURA — Design System v3
-   Clean, minimal, Apple-inspired. No emoji, no gradients.
+   TRACCIA LIBRI LETTURA — Design System v4
+   Dark Theme. Premium. Modern.
    =================================================================== */
 
 :root {
     --blue:         #0071e3;
-    --blue-hover:   #0077ed;
+    --blue-hover:   #0580f5;
     --red:          #e53935;
 
-    --t1:  #1d1d1f;   /* testo principale */
-    --t2:  #424245;   /* testo secondario */
-    --t3:  #6e6e73;   /* testo terziario */
-    --t4:  #a1a1a6;   /* placeholder / muted */
+    --t1:  #ffffff;
+    --t2:  rgba(255,255,255,.68);
+    --t3:  rgba(255,255,255,.42);
+    --t4:  rgba(255,255,255,.26);
 
-    --bg:       #f5f5f7;
-    --surface:  #ffffff;
-    --s2:       #fafafa;
+    --bg:       #080c14;
+    --surface:  #0e1522;
+    --s2:       #131d2e;
 
-    --border:       #d2d2d7;
-    --border-light: #e8e8ed;
+    --border:       rgba(255,255,255,.10);
+    --border-light: rgba(255,255,255,.06);
 
-    --sh-sm: 0 1px 4px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-    --sh-md: 0 4px 16px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.06);
-    --sh-lg: 0 12px 40px rgba(0,0,0,.14), 0 4px 8px rgba(0,0,0,.06);
+    --sh-sm: 0 2px 8px rgba(0,0,0,.45);
+    --sh-md: 0 4px 24px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05);
+    --sh-lg: 0 12px 48px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.07);
 
     --r:    12px;
     --r-sm: 8px;
@@ -43,6 +43,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
     background: var(--bg);
     color: var(--t1);
+    color-scheme: dark;
     font-size: 17px;
     line-height: 1.5;
     min-height: 100vh;
@@ -55,10 +56,10 @@ body {
 
 /* === NAVBAR === */
 .navbar {
-    background: rgba(0,0,0,.88);
+    background: rgba(8,12,20,.92);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid rgba(255,255,255,.08);
+    border-bottom: 1px solid rgba(255,255,255,.07);
     position: sticky;
     top: 0;
     z-index: 200;
@@ -98,14 +99,14 @@ body {
     padding: 6px 12px;
     font-size: 14px;
     font-weight: 500;
-    color: rgba(255,255,255,.62);
+    color: rgba(255,255,255,.52);
     text-decoration: none;
     border-radius: var(--r-xs);
     transition: color var(--t), background var(--t);
     white-space: nowrap;
 }
 
-.nav-links a:hover   { color: #fff; background: rgba(255,255,255,.09); }
+.nav-links a:hover   { color: #fff; background: rgba(255,255,255,.08); }
 .nav-links a.active  { color: #fff; font-weight: 600; }
 .nav-logout a:hover  { color: var(--red) !important; background: rgba(229,57,53,.12) !important; }
 
@@ -116,14 +117,14 @@ body {
     border: none;
     padding: 8px;
     cursor: pointer;
-    color: rgba(255,255,255,.8);
+    color: rgba(255,255,255,.7);
     border-radius: var(--r-xs);
     margin: 0;
     flex-shrink: 0;
     line-height: 0;
 }
 
-.nav-hamburger:hover  { background: rgba(255,255,255,.1); transform: none; box-shadow: none; }
+.nav-hamburger:hover  { background: rgba(255,255,255,.08); transform: none; box-shadow: none; }
 .nav-hamburger svg    { display: block; pointer-events: none; }
 
 /* Mobile nav panel */
@@ -134,10 +135,10 @@ body {
     top: 52px;
     left: 0;
     right: 0;
-    background: rgba(10,10,10,.97);
+    background: rgba(8,12,20,.98);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border-bottom: 1px solid rgba(255,255,255,.08);
+    border-bottom: 1px solid rgba(255,255,255,.07);
     padding: 10px 16px 18px;
     gap: 2px;
     box-shadow: var(--sh-lg);
@@ -153,11 +154,11 @@ body {
     font-weight: 500;
     padding: 13px 14px;
     border-radius: var(--r-sm);
-    color: rgba(255,255,255,.82);
+    color: rgba(255,255,255,.72);
 }
 
 .nav-links.open a:hover {
-    background: rgba(255,255,255,.08);
+    background: rgba(255,255,255,.07);
     color: #fff;
 }
 
@@ -171,6 +172,7 @@ body {
     margin: 0 auto;
     padding: 40px 24px 60px;
     flex: 1;
+    animation: fadeUp .38s cubic-bezier(.22,.8,.2,1);
 }
 
 .page-content-narrow {
@@ -179,6 +181,7 @@ body {
     margin: 0 auto;
     padding: 40px 24px 60px;
     flex: 1;
+    animation: fadeUp .38s cubic-bezier(.22,.8,.2,1);
 }
 
 .page-header {
@@ -224,13 +227,14 @@ body {
     padding: 22px 22px 16px;
     display: flex;
     flex-direction: column;
-    transition: box-shadow var(--t), transform var(--t), border-color var(--t);
+    transition: box-shadow var(--t), transform var(--t), border-color var(--t), background var(--t);
 }
 
 .book-card:hover {
-    box-shadow: var(--sh-md);
-    transform: translateY(-2px);
-    border-color: var(--border);
+    box-shadow: 0 0 0 1px rgba(0,113,227,.28), 0 8px 32px rgba(0,0,0,.5);
+    transform: translateY(-3px);
+    border-color: rgba(0,113,227,.28);
+    background: var(--s2);
 }
 
 .book-card-title {
@@ -244,7 +248,7 @@ body {
 
 .book-card-author {
     font-size: 14px;
-    color: var(--t2);
+    color: var(--t3);
     margin-bottom: 8px;
     font-weight: 400;
 }
@@ -273,22 +277,23 @@ body {
     gap: 5px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--t1);
+    color: var(--blue);
     text-decoration: none;
-    background: var(--bg);
-    border: 1px solid var(--border);
+    background: rgba(0,113,227,.1);
+    border: 1px solid rgba(0,113,227,.22);
     border-radius: 50px;
     padding: 5px 14px;
-    transition: background var(--t), color var(--t), border-color var(--t);
+    transition: background var(--t), color var(--t), border-color var(--t), box-shadow var(--t);
     white-space: nowrap;
 }
 
 .link-view::after { content: '→'; font-size: 12px; }
 
 .link-view:hover {
-    background: var(--t1);
+    background: var(--blue);
     color: #fff;
-    border-color: var(--t1);
+    border-color: var(--blue);
+    box-shadow: 0 4px 14px rgba(0,113,227,.35);
     text-decoration: none;
 }
 
@@ -299,7 +304,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--t4);
+    color: var(--blue);
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border-light);
     margin-bottom: 18px;
@@ -310,7 +315,7 @@ label {
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: var(--t2);
+    color: var(--t3);
     margin-bottom: 6px;
 }
 
@@ -326,7 +331,7 @@ select {
     margin-bottom: 16px;
     font-size: 15px;
     font-family: inherit;
-    background: var(--surface);
+    background: rgba(255,255,255,.04);
     border: 1px solid var(--border);
     border-radius: var(--r-sm);
     color: var(--t1);
@@ -337,13 +342,19 @@ select {
 
 input:focus, textarea:focus, select:focus {
     outline: none;
-    border-color: var(--t2);
-    box-shadow: 0 0 0 3px rgba(0,0,0,.08);
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(0,113,227,.18);
 }
 
 input::placeholder, textarea::placeholder { color: var(--t4); }
 
 textarea { resize: vertical; min-height: 90px; }
+
+/* Date picker icon tint for dark backgrounds */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(.4);
+    cursor: pointer;
+}
 
 /* === BUTTONS === */
 button, .btn {
@@ -366,35 +377,36 @@ button, .btn {
 }
 
 .btn-primary {
-    background: var(--t1);
+    background: var(--blue);
     color: #fff;
 }
 
 .btn-primary:hover {
-    background: var(--t2);
-    box-shadow: 0 4px 14px rgba(0,0,0,.2);
+    background: var(--blue-hover);
+    box-shadow: 0 4px 16px rgba(0,113,227,.4);
     transform: none;
 }
 
 .btn-secondary {
-    background: rgba(0,0,0,.06);
-    color: var(--t1);
+    background: rgba(255,255,255,.07);
+    color: var(--t2);
+    border: 1px solid var(--border);
 }
 
-.btn-secondary:hover { background: rgba(0,0,0,.1); transform: none; box-shadow: none; }
+.btn-secondary:hover { background: rgba(255,255,255,.12); transform: none; box-shadow: none; }
 
 .btn-full { width: 100%; margin-top: 6px; }
 
 button[type="submit"]:not(.auth-tab-btn) {
-    background: var(--t1);
+    background: var(--blue);
     color: #fff;
     padding: 11px 22px;
 }
 
 button[type="submit"]:not(.auth-tab-btn):hover {
-    background: var(--t2);
+    background: var(--blue-hover);
     transform: none;
-    box-shadow: 0 4px 14px rgba(0,0,0,.2);
+    box-shadow: 0 4px 16px rgba(0,113,227,.4);
 }
 
 /* Inline edit/delete */
@@ -405,14 +417,14 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     font-size: 13px;
     font-weight: 500;
     font-family: inherit;
-    color: var(--t2);
+    color: var(--t3);
     cursor: pointer;
     border-radius: var(--r-xs);
     transition: background var(--t), color var(--t);
     margin: 0;
 }
 
-.edit-button:hover { background: rgba(0,0,0,.06); color: var(--t1); transform: none; box-shadow: none; }
+.edit-button:hover { background: rgba(255,255,255,.08); color: var(--t1); transform: none; box-shadow: none; }
 
 .delete-button {
     background: none;
@@ -428,7 +440,7 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     margin: 0;
 }
 
-.delete-button:hover { background: rgba(229,57,53,.08); color: var(--red); transform: none; box-shadow: none; }
+.delete-button:hover { background: rgba(229,57,53,.12); color: var(--red); transform: none; box-shadow: none; }
 
 /* === AUTH PAGE === */
 .auth-page {
@@ -444,8 +456,8 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 .auth-card {
     background: var(--surface);
     border-radius: var(--r);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--sh-md);
+    border: 1px solid var(--border);
+    box-shadow: var(--sh-lg);
     padding: 40px 36px;
     width: 100%;
     max-width: 400px;
@@ -465,7 +477,7 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 
 .auth-tabs {
     display: flex;
-    background: var(--bg);
+    background: rgba(255,255,255,.04);
     border-radius: var(--r-sm);
     padding: 3px;
     margin-bottom: 24px;
@@ -483,14 +495,13 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     font-family: inherit;
     border-radius: var(--r-xs);
     cursor: pointer;
-    transition: background var(--t), color var(--t), box-shadow var(--t);
+    transition: background var(--t), color var(--t);
 }
 
 .auth-tab-btn.active {
-    background: var(--surface);
+    background: rgba(255,255,255,.1);
     color: var(--t1);
     font-weight: 600;
-    box-shadow: var(--sh-sm);
 }
 
 .auth-tab-btn:hover:not(.active) { color: var(--t2); transform: none; box-shadow: none; }
@@ -759,7 +770,7 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     display: block;
     font-size: 12px;
     font-weight: 600;
-    color: var(--t4);
+    color: var(--blue);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 16px;
@@ -787,13 +798,12 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 }
 
 .home-nav-card {
-    background: var(--surface);
+    background: rgba(255,255,255,.025);
     border: 1px solid var(--border-light);
     border-radius: var(--r);
     padding: 32px 28px 26px;
     text-decoration: none;
-    box-shadow: var(--sh-sm);
-    transition: box-shadow var(--t), transform var(--t), border-color var(--t);
+    transition: box-shadow var(--t), transform var(--t), border-color var(--t), background var(--t);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -801,9 +811,10 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 }
 
 .home-nav-card:hover {
-    box-shadow: var(--sh-md);
+    background: rgba(0,113,227,.06);
+    border-color: rgba(0,113,227,.3);
+    box-shadow: 0 8px 32px rgba(0,113,227,.12), 0 0 0 1px rgba(0,113,227,.15);
     transform: translateY(-3px);
-    border-color: var(--border);
 }
 
 .home-nav-card h3 {
@@ -824,12 +835,12 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 .home-nav-arrow {
     display: block;
     font-size: 18px;
-    color: var(--t4);
+    color: var(--blue);
     margin-top: 24px;
     transition: transform var(--t), color var(--t);
 }
 
-.home-nav-card:hover .home-nav-arrow { transform: translateX(5px); color: var(--t2); }
+.home-nav-card:hover .home-nav-arrow { transform: translateX(5px); color: var(--blue-hover); }
 
 /* === BOOK DETAIL === */
 .book-detail-header {
@@ -897,25 +908,53 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--t4);
+    color: var(--blue);
     margin-bottom: 14px;
 }
 
 .book-quote {
     font-size: 17px;
-    color: var(--t1);
+    color: var(--t2);
     font-style: italic;
     line-height: 1.7;
-    border-left: 3px solid var(--border);
+    border-left: 3px solid var(--blue);
     padding-left: 18px;
     margin: 0;
 }
 
 .ds-text {
     font-size: 15px;
-    color: var(--t2);
+    color: var(--t3);
     line-height: 1.7;
     margin: 0;
+}
+
+/* 2-column layout for book detail on desktop */
+@media (min-width: 769px) {
+    #book-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 40px;
+        align-items: start;
+    }
+
+    #book-details .book-detail-header,
+    #book-details .detail-rows {
+        grid-column: 1;
+    }
+
+    #book-details .detail-section {
+        grid-column: 2;
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+
+    #book-details .detail-section ~ .detail-section {
+        margin-top: 28px;
+        padding-top: 28px;
+        border-top: 1px solid var(--border-light);
+    }
 }
 
 /* Edit form card header */
@@ -963,7 +1002,8 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 .toast {
     padding: 12px 18px;
     border-radius: var(--r-sm);
-    background: #111;
+    background: #1a2236;
+    border: 1px solid rgba(255,255,255,.1);
     color: #fff;
     font-size: 14px;
     font-family: inherit;
@@ -976,24 +1016,26 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 }
 
 .toast-show    { opacity: 1; transform: translateX(0); }
-.toast-success { background: #1a3a2a; }
-.toast-error   { background: #3a1010; }
+.toast-success { background: #0d2e1a; border-color: rgba(52,199,89,.2); }
+.toast-error   { background: #2e0d0d; border-color: rgba(229,57,53,.2); }
 
 /* === CONFIRM DIALOG === */
 .confirm-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.45);
+    background: rgba(0,0,0,.6);
     z-index: 9000;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 16px;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 
 .confirm-box {
     background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: var(--r);
     box-shadow: var(--sh-lg);
     padding: 28px 24px;
@@ -1011,7 +1053,7 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     display: inline-block;
     width: 15px;
     height: 15px;
-    border: 2px solid rgba(255,255,255,.35);
+    border: 2px solid rgba(255,255,255,.25);
     border-top-color: #fff;
     border-radius: 50%;
     animation: spin .65s linear infinite;
@@ -1025,8 +1067,8 @@ button[type="submit"]:not(.auth-tab-btn):hover {
     grid-column: 1 / -1;
 }
 
-.empty-state h3 { font-size: 18px; font-weight: 600; color: var(--t2); margin-bottom: 8px; }
-.empty-state p  { font-size: 15px; color: var(--t3); margin-bottom: 20px; }
+.empty-state h3 { font-size: 18px; font-weight: 600; color: var(--t3); margin-bottom: 8px; }
+.empty-state p  { font-size: 15px; color: var(--t4); margin-bottom: 20px; }
 
 /* === FOOTER === */
 footer {
@@ -1035,13 +1077,14 @@ footer {
     color: var(--t4);
     font-size: 13px;
     border-top: 1px solid var(--border-light);
-    background: var(--surface);
+    background: transparent;
 }
 
 /* === KEYFRAMES === */
 @keyframes spin      { to { transform: rotate(360deg); } }
 @keyframes slideDown { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }
 @keyframes scaleIn   { from { opacity:0; transform:scale(.95) } to { opacity:1; transform:scale(1) } }
+@keyframes fadeUp    { from { opacity:0; transform:translateY(18px) } to { opacity:1; transform:translateY(0) } }
 
 /* === RESPONSIVE — Tablet === */
 @media (max-width: 900px) {
@@ -1070,8 +1113,6 @@ footer {
     .home-nav-grid   { grid-template-columns: 1fr; gap: 10px; }
     .home-nav-card   { min-height: auto; padding: 22px 20px 18px; }
 
-    /* Detail */
-
     /* Auth */
     .auth-card       { padding: 28px 20px; }
     .auth-card-header h1 { font-size: 21px; }
@@ -1091,7 +1132,6 @@ footer {
 
 @media (max-width: 480px) {
     .features-grid   { grid-template-columns: 1fr; }
-    .detail-grid     { grid-template-columns: 1fr; }
     .confirm-actions { flex-direction: column-reverse; }
     .confirm-actions button { width: 100%; }
     #toast-container { top: 12px; right: 12px; }
