@@ -515,6 +515,10 @@ button[type="submit"]:not(.auth-tab-btn):hover {
 .auth-form { display: none; }
 .auth-form.active { display: block; }
 
+.auth-forgot { text-align: center; margin-top: 12px; font-size: 13px; }
+.auth-forgot a { color: var(--t3); text-decoration: none; }
+.auth-forgot a:hover { color: var(--accent); }
+
 .auth-footer { text-align: center; margin-top: 18px; }
 
 .auth-footer a {

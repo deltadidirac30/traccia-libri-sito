@@ -25,6 +25,43 @@ tabRegister.addEventListener('click', () => switchTab('register'));
 
 if (window.location.hash === '#register') switchTab('register');
 
+// --- Recupera password ---
+const forgotWrapper = document.getElementById('forgot-wrapper');
+const loginFormEl   = document.getElementById('login-form');
+
+document.getElementById('forgot-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    loginFormEl.style.display  = 'none';
+    forgotWrapper.style.display = 'block';
+});
+
+document.getElementById('forgot-cancel-btn').addEventListener('click', () => {
+    forgotWrapper.style.display = 'none';
+    loginFormEl.style.display  = '';
+});
+
+document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('forgot-email').value.trim();
+    const btn   = document.getElementById('forgot-btn');
+
+    btn.disabled  = true;
+    btn.innerHTML = '<span class="spinner"></span> Invio...';
+
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://deltadidirac30.github.io/traccia-libri-sito/reset_password.html'
+    });
+
+    if (error) {
+        showToast('Errore: ' + error.message, 'error');
+        btn.disabled    = false;
+        btn.textContent = 'Invia link';
+    } else {
+        showToast('Link inviato! Controlla la tua email.', 'success');
+        btn.textContent = 'Link inviato ✓';
+    }
+});
+
 // --- Login ---
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();

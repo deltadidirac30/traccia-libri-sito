@@ -30,7 +30,19 @@
       <input type="password" id="login-password" placeholder="La tua password" required />
 
       <button type="submit" class="btn-primary btn-full" id="login-btn">Accedi</button>
+      <p class="auth-forgot"><a href="#" id="forgot-link">Hai dimenticato la password?</a></p>
     </form>
+
+    <!-- Recupera password -->
+    <div id="forgot-wrapper" style="display:none;">
+      <form id="forgot-form" class="auth-form active">
+        <p style="font-size:.9rem;color:var(--t2);margin-bottom:12px;">Ti invieremo un link per reimpostare la password.</p>
+        <label for="forgot-email">Email</label>
+        <input type="email" id="forgot-email" placeholder="La tua email" required />
+        <button type="submit" class="btn-primary btn-full" id="forgot-btn">Invia link</button>
+        <button type="button" class="btn-secondary btn-full" id="forgot-cancel-btn" style="margin-top:6px;">Annulla</button>
+      </form>
+    </div>
 
     <form id="register-form" class="auth-form">
       <label for="register-nickname">Nickname</label>
