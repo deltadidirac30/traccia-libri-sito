@@ -1,6 +1,14 @@
 // supabaseClient.js è già caricato prima di questo file
 
-let currentUser = null;
+let currentUser  = null;
+let editUserGroups = [];
+
+function handleEditVisibilityChange() {
+    const vis     = document.getElementById('edit-visibility').value;
+    const wrapper = document.getElementById('edit-group-wrapper');
+    if (wrapper) wrapper.style.display = vis === 'group' ? 'block' : 'none';
+}
+window.handleEditVisibilityChange = handleEditVisibilityChange;
 
 // --- Carica i libri dell'utente ---
 async function loadMyBooks() {
@@ -93,12 +101,39 @@ async function editBook(bookId) {
     document.getElementById('edit-summary').value         = book.summary          ?? '';
     document.getElementById('edit-notes').value           = book.notes            ?? '';
 
+    // Visibilità e gruppo
+    const visSelect   = document.getElementById('edit-visibility');
+    const groupSelect = document.getElementById('edit-group-id');
+    const groupWrapper= document.getElementById('edit-group-wrapper');
+
+    visSelect.value = book.visibility ?? 'private';
+
+    if (editUserGroups.length === 0) {
+        groupSelect.innerHTML = '<option value="">Nessun gruppo disponibile</option>';
+    } else {
+        groupSelect.innerHTML = editUserGroups
+            .map(g => `<option value="${g.id}">${sanitize(g.name)}</option>`)
+            .join('');
+    }
+    if (book.group_id) groupSelect.value = book.group_id;
+
+    groupWrapper.style.display = book.visibility === 'group' ? 'block' : 'none';
+
     editSection.style.display = 'block';
     editSection.scrollIntoView({ behavior: 'smooth' });
 
     editForm.onsubmit = async function (e) {
         e.preventDefault();
-        const pagesVal = document.getElementById('edit-pages').value;
+        const pagesVal   = document.getElementById('edit-pages').value;
+        const visibility = document.getElementById('edit-visibility').value;
+        const groupId    = visibility === 'group'
+            ? (document.getElementById('edit-group-id').value || null)
+            : null;
+
+        if (visibility === 'group' && !groupId) {
+            showToast('Seleziona un gruppo o crea/unisciti a uno nella sezione Gruppi.', 'error');
+            return;
+        }
 
         const { error: updateError } = await db.from('books').update({
             added_by:         document.getElementById('edit-addedBy').value,
@@ -111,6 +146,8 @@ async function editBook(bookId) {
             quote:            document.getElementById('edit-quote').value     || null,
             summary:          document.getElementById('edit-summary').value   || null,
             notes:            document.getElementById('edit-notes').value     || null,
+            visibility,
+            group_id: groupId,
         }).eq('id', bookId);
 
         if (updateError) {
@@ -133,5 +170,13 @@ document.getElementById('cancel-edit-button').addEventListener('click', () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
     await initNavbar();
+
+    // Carica i gruppi dell'utente per il selettore visibilità
+    const { data: memberships } = await db
+        .from('group_members')
+        .select('groups(id, name)')
+        .eq('user_id', currentUser.id);
+    editUserGroups = memberships?.map(m => m.groups).filter(Boolean) ?? [];
+
     await loadMyBooks();
 })();

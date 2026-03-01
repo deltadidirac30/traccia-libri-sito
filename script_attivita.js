@@ -14,7 +14,11 @@ function renderList(containerId, items, renderFn, emptyMsg) {
 async function loadActivity() {
     const uid = currentUser.id;
 
-    // Tutte le query in parallelo
+    // Passo 1: recupera gli ID dei libri dell'utente (necessario per le query "ricevuti")
+    const { data: myBooks } = await db.from('books').select('id').eq('owner_id', uid);
+    const myBookIds = (myBooks ?? []).map(b => b.id);
+
+    // Passo 2: tutte le altre query in parallelo
     const [
         booksCountResult,
         groupsCountResult,
@@ -39,17 +43,22 @@ async function loadActivity() {
             .eq('user_id', uid)
             .order('created_at', { ascending: false })
             .limit(5),
-        db.from('book_likes')
-            .select('book_id, created_at, books!inner(id, title)')
-            .eq('books.owner_id', uid)
-            .order('created_at', { ascending: false })
-            .limit(5),
-        db.from('book_comments')
-            .select('id, content, created_at, books!inner(id, title)')
-            .eq('books.owner_id', uid)
-            .neq('user_id', uid)
-            .order('created_at', { ascending: false })
-            .limit(5)
+        myBookIds.length > 0
+            ? db.from('book_likes')
+                .select('book_id, created_at, books(id, title)')
+                .in('book_id', myBookIds)
+                .neq('user_id', uid)
+                .order('created_at', { ascending: false })
+                .limit(5)
+            : Promise.resolve({ data: [] }),
+        myBookIds.length > 0
+            ? db.from('book_comments')
+                .select('id, content, created_at, books(id, title)')
+                .in('book_id', myBookIds)
+                .neq('user_id', uid)
+                .order('created_at', { ascending: false })
+                .limit(5)
+            : Promise.resolve({ data: [] })
     ]);
 
     // Stats

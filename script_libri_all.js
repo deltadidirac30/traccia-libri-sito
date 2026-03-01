@@ -95,13 +95,21 @@ document.getElementById('books-list').addEventListener('click', async (e) => {
     const wasLiked = likeBtn.classList.contains('liked');
     const countEl  = likeBtn.querySelector('.like-num');
     if (wasLiked) {
-        await db.from('book_likes').delete().eq('book_id', bookId).eq('user_id', currentUser.id);
-        likeBtn.classList.remove('liked');
-        likeBtn.innerHTML = `♡ <span class="like-num">${Math.max(0, parseInt(countEl.textContent) - 1)}</span>`;
+        const { error } = await db.from('book_likes').delete().eq('book_id', bookId).eq('user_id', currentUser.id);
+        if (!error) {
+            likeBtn.classList.remove('liked');
+            likeBtn.innerHTML = `♡ <span class="like-num">${Math.max(0, parseInt(countEl.textContent) - 1)}</span>`;
+        } else {
+            showToast('Errore durante la rimozione del like.', 'error');
+        }
     } else {
-        await db.from('book_likes').insert({ book_id: bookId, user_id: currentUser.id });
-        likeBtn.classList.add('liked');
-        likeBtn.innerHTML = `♥ <span class="like-num">${parseInt(countEl.textContent) + 1}</span>`;
+        const { error } = await db.from('book_likes').insert({ book_id: bookId, user_id: currentUser.id });
+        if (!error) {
+            likeBtn.classList.add('liked');
+            likeBtn.innerHTML = `♥ <span class="like-num">${parseInt(countEl.textContent) + 1}</span>`;
+        } else {
+            showToast('Errore durante il like.', 'error');
+        }
     }
     likeBtn.disabled = false;
 });

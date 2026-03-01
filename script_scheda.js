@@ -30,13 +30,21 @@ async function loadLikes(book) {
         btn.disabled   = true;
 
         if (isLiked) {
-            await db.from('book_likes').delete().eq('book_id', bookId).eq('user_id', currentUser.id);
-            btn.classList.remove('liked');
-            btn.innerHTML = `♡ <span id="like-count">${Math.max(0, parseInt(countEl.textContent) - 1)}</span>`;
+            const { error } = await db.from('book_likes').delete().eq('book_id', bookId).eq('user_id', currentUser.id);
+            if (!error) {
+                btn.classList.remove('liked');
+                btn.innerHTML = `♡ <span id="like-count">${Math.max(0, parseInt(countEl.textContent) - 1)}</span>`;
+            } else {
+                showToast('Errore durante la rimozione del like.', 'error');
+            }
         } else {
-            await db.from('book_likes').insert({ book_id: bookId, user_id: currentUser.id });
-            btn.classList.add('liked');
-            btn.innerHTML = `♥ <span id="like-count">${parseInt(countEl.textContent) + 1}</span>`;
+            const { error } = await db.from('book_likes').insert({ book_id: bookId, user_id: currentUser.id });
+            if (!error) {
+                btn.classList.add('liked');
+                btn.innerHTML = `♥ <span id="like-count">${parseInt(countEl.textContent) + 1}</span>`;
+            } else {
+                showToast('Errore durante il like.', 'error');
+            }
         }
         btn.disabled = false;
     });

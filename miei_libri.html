@@ -74,6 +74,17 @@
         <label for="edit-notes">Note di lettura</label>
         <textarea id="edit-notes" rows="4"></textarea>
 
+        <label for="edit-visibility">Visibilità</label>
+        <select id="edit-visibility" onchange="handleEditVisibilityChange()">
+          <option value="private">Solo io (privato)</option>
+          <option value="group">Condividi nel gruppo</option>
+        </select>
+
+        <div id="edit-group-wrapper" style="display:none;">
+          <label for="edit-group-id">Gruppo</label>
+          <select id="edit-group-id"></select>
+        </div>
+
         <div style="display:flex;gap:8px;margin-top:4px;">
           <button type="submit" class="btn-primary">Salva modifiche</button>
           <button type="button" id="cancel-edit-button" class="btn-secondary">Annulla</button>
