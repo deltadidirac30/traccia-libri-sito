@@ -1,11 +1,11 @@
-// firebase-init.js è già caricato prima di questo file
+// supabaseClient.js è già caricato prima di questo file
 
 function getBookIdFromUrl() {
     return new URLSearchParams(window.location.search).get('id');
 }
 
-function loadBookDetails() {
-    const bookId = getBookIdFromUrl();
+async function loadBookDetails() {
+    const bookId    = getBookIdFromUrl();
     const container = document.getElementById('book-details');
 
     if (!bookId) {
@@ -13,74 +13,73 @@ function loadBookDetails() {
         return;
     }
 
-    database.ref('books/' + bookId).once('value')
-        .then((snapshot) => {
-            if (!snapshot.exists()) {
-                container.innerHTML = '<p>Libro non trovato.</p>';
-                return;
-            }
+    // La RLS garantisce che l'utente veda solo libri a cui ha accesso
+    const { data: book, error } = await db
+        .from('books')
+        .select('*')
+        .eq('id', bookId)
+        .single();
 
-            const book = snapshot.val();
-            container.innerHTML = `
-                <div class="book-detail-header">
-                    <h1>${sanitize(book.title)}</h1>
-                    <p>di <strong>${sanitize(book.author)}</strong></p>
-                    <p class="book-detail-meta">Aggiunto da <strong>${sanitize(book.addedBy)}</strong></p>
-                </div>
+    if (error || !book) {
+        container.innerHTML = '<p>Libro non trovato o non hai i permessi per visualizzarlo.</p>';
+        return;
+    }
 
-                <div class="detail-rows">
-                    <div class="detail-row">
-                        <span class="dr-label">Anno di pubblicazione</span>
-                        <span class="dr-value">${sanitize(book.publicationDate || '—')}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="dr-label">Numero di pagine</span>
-                        <span class="dr-value">${book.pages ? sanitize(String(book.pages)) + ' pag.' : '—'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="dr-label">Inizio lettura</span>
-                        <span class="dr-value">${sanitize(book.startDate || '—')}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="dr-label">Fine lettura</span>
-                        <span class="dr-value">${sanitize(book.endDate || '—')}</span>
-                    </div>
-                </div>
+    container.innerHTML = `
+        <div class="book-detail-header">
+            <h1>${sanitize(book.title)}</h1>
+            <p>di <strong>${sanitize(book.author)}</strong></p>
+            <p class="book-detail-meta">Aggiunto da <strong>${sanitize(book.added_by)}</strong></p>
+        </div>
 
-                ${book.quote ? `
-                <div class="detail-section">
-                    <div class="ds-label">Citazione preferita</div>
-                    <blockquote class="book-quote">${sanitize(book.quote)}</blockquote>
-                </div>` : ''}
+        <div class="detail-rows">
+            <div class="detail-row">
+                <span class="dr-label">Anno di pubblicazione</span>
+                <span class="dr-value">${sanitize(book.publication_date || '—')}</span>
+            </div>
+            <div class="detail-row">
+                <span class="dr-label">Numero di pagine</span>
+                <span class="dr-value">${book.pages ? sanitize(String(book.pages)) + ' pag.' : '—'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="dr-label">Inizio lettura</span>
+                <span class="dr-value">${sanitize(book.start_date || '—')}</span>
+            </div>
+            <div class="detail-row">
+                <span class="dr-label">Fine lettura</span>
+                <span class="dr-value">${sanitize(book.end_date || '—')}</span>
+            </div>
+        </div>
 
-                ${book.summary ? `
-                <div class="detail-section">
-                    <div class="ds-label">Il libro in una frase</div>
-                    <p class="ds-text">${sanitize(book.summary)}</p>
-                </div>` : ''}
+        ${book.quote ? `
+        <div class="detail-section">
+            <div class="ds-label">Citazione preferita</div>
+            <blockquote class="book-quote">${sanitize(book.quote)}</blockquote>
+        </div>` : ''}
 
-                ${book.notes ? `
-                <div class="detail-section">
-                    <div class="ds-label">Note di lettura</div>
-                    <p class="ds-text">${sanitize(book.notes)}</p>
-                </div>` : ''}
-            `;
-        })
-        .catch((error) => {
-            console.error('Errore:', error);
-            container.innerHTML = '<p>Errore durante il caricamento. Riprova più tardi.</p>';
-        });
+        ${book.summary ? `
+        <div class="detail-section">
+            <div class="ds-label">Il libro in una frase</div>
+            <p class="ds-text">${sanitize(book.summary)}</p>
+        </div>` : ''}
+
+        ${book.notes ? `
+        <div class="detail-section">
+            <div class="ds-label">Note di lettura</div>
+            <p class="ds-text">${sanitize(book.notes)}</p>
+        </div>` : ''}
+    `;
 }
 
-document.getElementById('logout-link').addEventListener('click', (e) => {
+document.getElementById('logout-link').addEventListener('click', async (e) => {
     e.preventDefault();
-    auth.signOut().then(() => { window.location.href = 'login.html'; });
+    await db.auth.signOut();
+    window.location.href = 'login.html';
 });
 
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        loadBookDetails();
-    } else {
-        window.location.href = 'login.html';
-    }
-});
+// --- Inizializzazione ---
+(async () => {
+    const user = await requireAuth();
+    if (!user) return;
+    await loadBookDetails();
+})();

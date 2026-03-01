@@ -1,0 +1,5 @@
+tools/.env
+tools/node_modules/
+tools/package-lock.json
+tools/firebase_export.json
+.DS_Store

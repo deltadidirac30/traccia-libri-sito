@@ -251,3 +251,41 @@ CREATE TRIGGER on_auth_user_created
 CREATE INDEX IF NOT EXISTS books_owner_id_idx      ON public.books(owner_id);
 CREATE INDEX IF NOT EXISTS books_group_id_idx      ON public.books(group_id);
 CREATE INDEX IF NOT EXISTS group_members_user_idx  ON public.group_members(user_id);
+
+
+-- -----------------------------------------------------------------------
+-- 7. RPC — join_group_by_invite
+--    SECURITY DEFINER: bypassa RLS per trovare il gruppo tramite invite_code
+--    (un utente non ancora membro non potrebbe altrimenti fare SELECT su groups).
+--    Restituisce { group_id, group_name } oppure lancia un'eccezione.
+-- -----------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.join_group_by_invite(p_invite text)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_group_id   UUID;
+    v_group_name TEXT;
+BEGIN
+    -- Trova il gruppo (bypass RLS grazie a SECURITY DEFINER)
+    SELECT id, name INTO v_group_id, v_group_name
+    FROM public.groups
+    WHERE invite_code = p_invite;
+
+    IF v_group_id IS NULL THEN
+        RAISE EXCEPTION 'Codice invito non valido';
+    END IF;
+
+    -- Aggiunge l'utente corrente come membro (idempotente)
+    INSERT INTO public.group_members (group_id, user_id)
+    VALUES (v_group_id, auth.uid())
+    ON CONFLICT DO NOTHING;
+
+    RETURN jsonb_build_object(
+        'group_id',   v_group_id,
+        'group_name', v_group_name
+    );
+END;
+$$;

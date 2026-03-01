@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scheda Libro — Traccia Libri Lettura</title>
+  <title>Gruppi — Traccia Libri Lettura</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +18,7 @@
         <li><a href="home.html">Home</a></li>
         <li><a href="libri.html">Tutti i Libri</a></li>
         <li><a href="miei_libri.html">I Miei Libri</a></li>
-        <li><a href="gruppi.html">Gruppi</a></li>
+        <li><a href="gruppi.html" class="active">Gruppi</a></li>
         <li><a href="aggiungi_libro.html">Aggiungi</a></li>
         <li class="nav-logout"><a href="#" id="logout-link">Esci</a></li>
       </ul>
@@ -30,12 +30,42 @@
     </div>
   </header>
 
-  <main class="page-content">
-    <div class="card">
-      <div id="book-details">
-        <p style="color:var(--t3)">Caricamento in corso...</p>
-      </div>
+  <main class="page-content-narrow">
+
+    <div class="page-header">
+      <h1>I Miei Gruppi</h1>
+      <p>Gestisci i tuoi gruppi di lettura condivisi</p>
     </div>
+
+    <!-- Gruppi esistenti -->
+    <div id="groups-list"></div>
+
+    <!-- Crea nuovo gruppo -->
+    <div class="card" style="margin-top:32px;">
+      <div class="edit-card-header">
+        <h2>Crea un nuovo gruppo</h2>
+        <p>Genera un codice invito da condividere con i tuoi amici</p>
+      </div>
+      <form id="create-group-form">
+        <label for="group-name">Nome del gruppo</label>
+        <input type="text" id="group-name" placeholder="es. Club del Libro, Amici Lettori..." required />
+        <button type="submit" class="btn-primary">Crea gruppo</button>
+      </form>
+    </div>
+
+    <!-- Unisciti a un gruppo -->
+    <div class="card">
+      <div class="edit-card-header">
+        <h2>Unisciti a un gruppo</h2>
+        <p>Inserisci il codice invito ricevuto da un amico</p>
+      </div>
+      <form id="join-group-form">
+        <label for="invite-code">Codice invito</label>
+        <input type="text" id="invite-code" placeholder="es. a1b2c3d4e5f6" autocomplete="off" required />
+        <button type="submit" class="btn-primary">Unisciti</button>
+      </form>
+    </div>
+
   </main>
 
   <footer>
@@ -47,6 +77,6 @@
       document.getElementById('nav-links').classList.toggle('open');
     });
   </script>
-  <script src="script_scheda.js"></script>
+  <script src="script_gruppi.js"></script>
 </body>
 </html>

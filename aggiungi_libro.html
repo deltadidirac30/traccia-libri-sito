@@ -6,9 +6,8 @@
   <title>Aggiungi Libro — Traccia Libri Lettura</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
-  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabaseClient.js"></script>
 </head>
 <body>
 
@@ -19,6 +18,7 @@
         <li><a href="home.html">Home</a></li>
         <li><a href="libri.html">Tutti i Libri</a></li>
         <li><a href="miei_libri.html">I Miei Libri</a></li>
+        <li><a href="gruppi.html">Gruppi</a></li>
         <li><a href="aggiungi_libro.html" class="active">Aggiungi</a></li>
         <li class="nav-logout"><a href="#" id="logout-link">Esci</a></li>
       </ul>
@@ -70,7 +70,22 @@
         <label for="notes">Note di lettura</label>
         <textarea id="notes" rows="4" placeholder="Personaggi memorabili, riflessioni, impressioni..."></textarea>
 
-        <button type="submit" class="btn-primary" id="save-btn">Salva scheda</button>
+        <span class="form-section-label">Condivisione</span>
+
+        <label for="visibility">Chi può vedere questo libro?</label>
+        <select id="visibility" onchange="handleVisibilityChange()">
+          <option value="private">Privato — solo tu</option>
+          <option value="group">Condividi nel gruppo</option>
+        </select>
+
+        <div id="group-select-wrapper" style="display:none;">
+          <label for="group-id">Seleziona il gruppo</label>
+          <select id="group-id">
+            <option value="">Caricamento gruppi...</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary" id="save-btn" style="margin-top:8px;">Salva scheda</button>
       </form>
     </div>
   </main>
@@ -79,7 +94,6 @@
     <p>&copy; 2025 Traccia Libri Lettura. Tutti i diritti riservati.</p>
   </footer>
 
-  <script src="firebase-init.js"></script>
   <script>
     document.getElementById('nav-toggle').addEventListener('click', () => {
       document.getElementById('nav-links').classList.toggle('open');
