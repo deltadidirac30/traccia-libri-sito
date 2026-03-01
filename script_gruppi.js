@@ -2,6 +2,13 @@
 
 let currentUser = null;
 
+function copyGroupCode(code) {
+    navigator.clipboard.writeText(code)
+        .then(() => showToast('Codice copiato!', 'success'))
+        .catch(() => showToast('Codice: ' + code, 'info'));
+}
+window.copyGroupCode = copyGroupCode;
+
 // --- Carica e mostra i gruppi dell'utente ---
 async function loadGroups() {
     const groupsList = document.getElementById('groups-list');
@@ -41,6 +48,12 @@ async function loadGroups() {
             <div>
                 <div class="group-room-card-name">${sanitize(group.name)}</div>
                 <div class="group-room-card-meta">${isAdmin ? 'Amministratore' : 'Membro'}</div>
+                ${isAdmin ? `
+                <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+                    <code style="font-size:12px;color:var(--t2);letter-spacing:0.05em;">${sanitize(group.invite_code)}</code>
+                    <button class="btn-secondary" style="font-size:11px;padding:2px 8px;"
+                            onclick="event.stopPropagation();copyGroupCode('${sanitize(group.invite_code)}')">Copia</button>
+                </div>` : ''}
             </div>
             <span class="group-room-arrow">&#8594;</span>`;
         groupsList.appendChild(card);
