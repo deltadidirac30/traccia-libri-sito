@@ -632,3 +632,11 @@ DROP POLICY IF EXISTS "group_members: select" ON public.group_members;
 CREATE POLICY "group_members: select" ON public.group_members
 FOR SELECT TO authenticated
 USING (public.is_group_member(group_id));
+
+-- -----------------------------------------------------------------------
+-- 16. MIGRATION 006 — Notifiche (campanella + push sul telefono)
+--     Il file completo è in supabase/migrations/006_notifications.sql
+--     La funzione di invio è in supabase/functions/send-push/index.ts
+--     (pubblicata con verify_jwt = false: si protegge da sola con il segreto
+--     salvato in public.push_config).
+-- -----------------------------------------------------------------------

@@ -36,6 +36,14 @@ No algorithms. No ads. Just your books and your people.
 - Change your nickname, email address, or password from your profile page
 - **Activity page** shows your stats at a glance (books logged, groups, likes given, comments written) and lists the last 5 interactions — sent and received — for both likes and comments
 
+### 🔔 Notifications
+- A bell in the navbar shows new books shared in your groups, likes on your books and comments
+- Optional push notifications on phone and desktop (Profile → App e notifiche). On iPhone they work from the installed app (Share → Add to Home Screen)
+- Notifications are created by database triggers; push is sent by the `send-push` Edge Function
+
+### 📲 Installable
+- Add it to the home screen like an app: own icon, full screen, works as a PWA (manifest + service worker)
+
 ### 📱 Fully Responsive
 - Works on desktop and mobile
 - Mobile-first hamburger navigation with all links accessible with one tap
@@ -112,6 +120,13 @@ traccia_libri_sito/
 ├── style.css               # Single stylesheet — design system + all components
 ├── supabaseClient.js       # Supabase client, auth guard, shared utilities (icons, dates, book covers)
 ├── ui.js                   # Micro-animations with Motion (motion.dev), optional enhancement
+├── pwa.js                  # Service worker registration, install prompt, push subscription
+├── sw.js                   # Service worker: offline fallback + push notifications
+├── manifest.webmanifest    # App name, icons, colours
+├── icons/                  # App icons
+├── supabase/
+│   ├── migrations/006_notifications.sql
+│   └── functions/send-push/index.ts
 ├── script.js               # Add book form
 ├── script_gruppi.js
 ├── script_libri_all.js

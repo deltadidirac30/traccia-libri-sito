@@ -145,4 +145,8 @@ document.getElementById('delete-account-btn').addEventListener('click', () => {
     if (profile?.nickname) {
         document.getElementById('new-nickname').placeholder = profile.nickname;
     }
+
+    // App installabile e notifiche (pwa.js è caricato in defer)
+    const renderApp = () => window.TLPush?.renderSettings(document.getElementById('app-settings'));
+    if (window.TLPush) renderApp(); else window.addEventListener('load', renderApp);
 })();
