@@ -54,11 +54,9 @@ document.getElementById('email-form').addEventListener('submit', async (e) => {
     if (error) {
         showToast('Errore: ' + error.message, 'error');
     } else {
-        // Aggiorna anche la tabella profiles
-        await db.from('profiles').update({ email: newEmail }).eq('id', currentUser.id);
-        showToast('Email aggiornata! Controlla la nuova casella per la conferma', 'success');
+        // Il profilo si aggiorna da solo quando la nuova email viene confermata
+        showToast('Controlla la nuova casella: l’email cambia dopo la conferma', 'success');
         document.getElementById('email-form').reset();
-        document.getElementById('current-email').value = newEmail;
     }
 
     btn.disabled    = false;

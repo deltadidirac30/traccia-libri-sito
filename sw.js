@@ -5,7 +5,7 @@
 // Strategia: prima la rete, la cache solo se si è offline. Così un aggiornamento
 // pubblicato su GitHub Pages arriva subito e nessuno resta con una versione vecchia.
 // =====================================================================
-const VERSION = 'tl-v1';
+const VERSION = 'tl-v2';
 const SHELL = [
     './',
     './index.html',
@@ -15,6 +15,8 @@ const SHELL = [
     './supabaseClient.js',
     './ui.js',
     './pwa.js',
+    './vendor/supabase.js',
+    './vendor/motion.js',
     './icons/icon-192.png',
 ];
 

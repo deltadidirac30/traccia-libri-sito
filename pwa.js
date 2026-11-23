@@ -3,6 +3,11 @@
 // Caricato in defer su tutte le pagine. Non dipende da Motion.
 // =====================================================================
 
+// --- Il sito non può essere caricato dentro pagine altrui (clickjacking) ---
+if (window.top !== window.self) {
+    try { window.top.location.replace(window.location.href); } catch (_) { document.documentElement.style.display = 'none'; }
+}
+
 // --- Service worker: rende il sito installabile ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

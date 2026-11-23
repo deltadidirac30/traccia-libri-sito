@@ -51,10 +51,15 @@ function showToast(msg, type = 'info') {
 // -----------------------------------------------------------------------
 // Sanitizza l'output prima di inserirlo nel DOM (anti-XSS)
 // -----------------------------------------------------------------------
+// Rende sicuro qualsiasi testo dell'utente prima di inserirlo nell'HTML,
+// anche dentro gli attributi (per questo escape anche delle virgolette).
 function sanitize(str) {
-    const d = document.createElement('div');
-    d.textContent = str ?? '';
-    return d.innerHTML;
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // -----------------------------------------------------------------------

@@ -124,6 +124,7 @@ traccia_libri_sito/
 ├── sw.js                   # Service worker: offline fallback + push notifications
 ├── manifest.webmanifest    # App name, icons, colours
 ├── icons/                  # App icons
+├── vendor/                 # supabase-js and Motion, served by the site itself (see vendor/README.md)
 ├── supabase/
 │   ├── migrations/006_notifications.sql
 │   └── functions/send-push/index.ts

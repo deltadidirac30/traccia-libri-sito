@@ -640,3 +640,10 @@ USING (public.is_group_member(group_id));
 --     (pubblicata con verify_jwt = false: si protegge da sola con il segreto
 --     salvato in public.push_config).
 -- -----------------------------------------------------------------------
+
+-- -----------------------------------------------------------------------
+-- 17. MIGRATION 007–009 — Sicurezza
+--     supabase/migrations/007_security_hardening.sql   (accessi, email private, limiti)
+--     supabase/migrations/008_drop_unused_get_group_members.sql
+--     supabase/migrations/009_private_helper_functions.sql (funzioni RLS nello schema private)
+-- -----------------------------------------------------------------------
