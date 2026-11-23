@@ -3,6 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script>
+    // Tema: scelta salvata, altrimenti quello del sistema (prima del disegno, niente lampi)
+    (function () {
+      try {
+        var t = localStorage.getItem('tl-theme');
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = t;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+  <meta name="color-scheme" content="light dark">
   <title>La mia Attività — Traccia Libri Lettura</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,8 +59,14 @@
   <main class="page-content">
     <div class="page-header">
       <h1>La mia attività</h1>
-      <p>I tuoi numeri e le ultime interazioni nei gruppi</p>
+      <p>Le tue letture e le interazioni nei gruppi</p>
     </div>
+
+    <section class="reading-stats" id="reading-stats" aria-label="Le tue letture">
+      <p class="loading-text">Caricamento…</p>
+    </section>
+
+    <h2 class="section-title section-title-lg">Nei gruppi</h2>
 
     <div class="stat-grid" id="stat-grid">
       <div class="stat-card"><div class="stat-value" id="stat-books">—</div><div class="stat-label">Libri caricati</div></div>
@@ -88,6 +105,7 @@
       document.getElementById('nav-toggle').setAttribute('aria-expanded', open);
     });
   </script>
+  <script src="charts.js"></script>
   <script src="script_attivita.js"></script>
 </body>
 </html>

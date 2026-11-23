@@ -5,7 +5,7 @@
 // Strategia: prima la rete, la cache solo se si è offline. Così un aggiornamento
 // pubblicato su GitHub Pages arriva subito e nessuno resta con una versione vecchia.
 // =====================================================================
-const VERSION = 'tl-v2';
+const VERSION = 'tl-v3';
 const SHELL = [
     './',
     './index.html',

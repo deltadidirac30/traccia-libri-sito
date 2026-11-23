@@ -79,6 +79,8 @@ const ICONS = {
     pen:     '<path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>',
     lock:    '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     check:   '<path d="M20 6 9 17l-5-5"/>',
+    moon:    '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+    sun:     '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
     bell:    '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>',
 };
 
@@ -142,9 +144,105 @@ function bookCover(book, size = 'md') {
 }
 
 // -----------------------------------------------------------------------
+// Scaffale: i libri come dorsi. Spessore = pagine, altezza variabile.
+// Passando sopra i dorsi si sfilano (effetto "dock"), sotto compare il titolo.
+// -----------------------------------------------------------------------
+function hashOf(text) {
+    let h = 0;
+    for (const ch of String(text ?? '')) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+    return h;
+}
+
+function spineHtml(book) {
+    const title   = book?.title ?? '';
+    const author  = book?.author ?? '';
+    const surname = author.trim().split(/\s+/).pop() ?? '';
+    const pages   = Number(book?.pages) || 220;
+    const w = Math.round(Math.min(62, Math.max(28, 20 + pages / 11)));
+    const h = 176 + (hashOf(title) % 6) * 9;
+    const period = readingPeriod(book?.start_date, book?.end_date);
+    return `
+        <a class="spine" href="scheda.html?id=${encodeURIComponent(book.id)}"
+           style="--cloth:${clothFor(title + surname)};--w:${w}px;--h:${h}px"
+           data-book-id="${sanitize(book.id)}"
+           data-title="${sanitize(title)}" data-author="${sanitize(author)}"
+           data-meta="${sanitize([book?.added_by, period].filter(Boolean).join(' · '))}"
+           aria-label="${sanitize(title)}, ${sanitize(author)}">
+            <span class="spine-title">${sanitize(title)}</span>
+            <span class="spine-author">${sanitize(surname)}</span>
+        </a>`;
+}
+
+function renderShelf(container, books, { title = '', note = '' } = {}) {
+    if (!container) return;
+    if (!books?.length) { container.innerHTML = ''; container.hidden = true; return; }
+    container.hidden = false;
+    container.innerHTML = `
+        ${title ? `<div class="section-head"><h2 class="section-title">${sanitize(title)} <span class="section-count">${books.length}</span></h2>${note}</div>` : ''}
+        <div class="shelf">
+            <div class="shelf-row">${books.map(spineHtml).join('')}<span class="bookend" aria-hidden="true"></span></div>
+            <div class="shelf-plank" aria-hidden="true"></div>
+        </div>
+        <p class="shelf-caption" aria-live="polite"><span class="shelf-caption-hint">Passa sopra un libro per sfilarlo dallo scaffale</span></p>`;
+
+    const row     = container.querySelector('.shelf-row');
+    const caption = container.querySelector('.shelf-caption');
+    const spines  = [...row.querySelectorAll('.spine')];
+    // L'ultimo libro si appoggia al fermalibri
+    if (spines.length > 2) spines[spines.length - 1].classList.add('spine-lean');
+    const fine    = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    const showCaption = (sp) => {
+        // dataset restituisce il testo già decodificato: va sempre ripulito
+        caption.innerHTML = `<strong>${sanitize(sp.dataset.title)}</strong> <span>${sanitize(sp.dataset.author)}</span>${sp.dataset.meta ? ` <span class="period">${sanitize(sp.dataset.meta)}</span>` : ''}`;
+    };
+    spines.forEach(sp => {
+        sp.addEventListener('focus', () => { showCaption(sp); spines.forEach(o => o.style.setProperty('--lift', o === sp ? 1 : 0)); });
+        sp.addEventListener('blur',  () => sp.style.setProperty('--lift', 0));
+    });
+
+    if (fine) {
+        // Effetto dock: i dorsi vicini al cursore si alzano in proporzione
+        row.addEventListener('pointermove', (e) => {
+            let best = null, bestD = Infinity;
+            for (const sp of spines) {
+                const r = sp.getBoundingClientRect();
+                const d = Math.abs(e.clientX - (r.left + r.width / 2));
+                sp.style.setProperty('--lift', Math.max(0, 1 - d / 110).toFixed(3));
+                if (d < bestD) { bestD = d; best = sp; }
+            }
+            if (best) showCaption(best);
+        });
+        row.addEventListener('pointerleave', () => spines.forEach(sp => sp.style.setProperty('--lift', 0)));
+    }
+}
+
+// -----------------------------------------------------------------------
+// Copertina che vola: prima di aprire una scheda, la copertina cliccata
+// prende il nome della transizione e i dati del libro passano alla pagina nuova.
+// -----------------------------------------------------------------------
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href^="scheda.html?id="]');
+    if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    const source = link.matches('.spine') ? link : link.querySelector('.cover, .spine');
+    document.querySelectorAll('[style*="view-transition-name"]').forEach(el => { el.style.viewTransitionName = ''; });
+    if (source) source.style.viewTransitionName = 'book-cover';
+    const card = link.closest('.book-card, .home-book-row, .spine, .notif-item') || link;
+    const title  = card.dataset?.title  || card.querySelector?.('.book-card-title, .home-book-title')?.textContent || '';
+    const author = card.dataset?.author || card.querySelector?.('.book-card-author, .home-book-author')?.textContent || '';
+    try {
+        sessionStorage.setItem('tl:book', JSON.stringify({
+            id: new URL(link.href).searchParams.get('id'), title: title.trim(), author: author.trim(),
+        }));
+    } catch (_) { /* niente memoria di sessione: nessuna anteprima */ }
+}, true);
+
+// -----------------------------------------------------------------------
 // Dialogo di conferma generico (usato da tutte le pagine)
 // -----------------------------------------------------------------------
 function showConfirm(message, onConfirm, confirmLabel = 'Elimina', isDanger = true) {
+    // "Tieni premuto per eliminare" ha già confermato: niente dialogo
+    if (window.__tlHoldConfirmed) { window.__tlHoldConfirmed = false; onConfirm(); return; }
     const overlay = document.createElement('div');
     overlay.className = 'confirm-overlay';
     overlay.innerHTML = `
@@ -156,11 +254,14 @@ function showConfirm(message, onConfirm, confirmLabel = 'Elimina', isDanger = tr
                 <button class="btn-primary ${isDanger ? 'btn-danger' : ''}" id="confirm-yes">${sanitize(confirmLabel)}</button>
             </div>
         </div>`;
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
     document.body.appendChild(overlay);
     overlay.querySelector('#confirm-no').focus();
-    overlay.querySelector('#confirm-yes').addEventListener('click', () => { overlay.remove(); onConfirm(); });
-    overlay.querySelector('#confirm-no').addEventListener('click',  () => overlay.remove());
+    const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    overlay.querySelector('#confirm-yes').addEventListener('click', () => { close(); onConfirm(); });
+    overlay.querySelector('#confirm-no').addEventListener('click',  close);
 }
 
 // -----------------------------------------------------------------------
@@ -197,6 +298,9 @@ async function initNavbar() {
     const actions = document.createElement('div');
     actions.className = 'nav-actions';
     actions.innerHTML = `
+        <button class="theme-btn" data-theme-toggle aria-label="Cambia tema chiaro/scuro" title="Tema notte">
+            ${icon('moon', 18)}${icon('sun', 18)}
+        </button>
         <div class="notif-menu">
             <button class="notif-btn" id="notif-btn" aria-label="Notifiche" aria-haspopup="true" aria-expanded="false">
                 ${icon('bell', 18)}

@@ -3,6 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script>
+    // Tema: scelta salvata, altrimenti quello del sistema (prima del disegno, niente lampi)
+    (function () {
+      try {
+        var t = localStorage.getItem('tl-theme');
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = t;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+  <meta name="color-scheme" content="light dark">
   <title>Traccia Libri — il diario di lettura del tuo gruppo</title>
   <meta name="description" content="Tieni traccia dei libri che leggi e condividili con il tuo gruppo di amici: note, citazioni, like e commenti.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +40,10 @@
     <div class="landing-nav-inner">
       <a href="index.html" class="landing-nav-brand">Traccia Libri</a>
       <div class="landing-nav-actions">
+        <button class="theme-btn" data-theme-toggle aria-label="Cambia tema chiaro/scuro" title="Tema notte">
+          <svg class="icon icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg class="icon icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
         <a href="login.html" class="btn-nav-ghost">Accedi</a>
         <a href="login.html#register" class="btn-nav-cta">Crea un account</a>
       </div>
@@ -39,15 +54,32 @@
     <section class="hero">
       <div class="hero-inner">
         <div class="hero-copy">
-          <h1>Tieni traccia di ogni libro che leggi</h1>
-          <p>Cataloga le tue letture, scrivi note e condividile con il tuo gruppo di amici. Semplice, veloce, gratuito.</p>
-          <div class="hero-actions">
+          <p class="hero-kicker"><span class="hero-dot"></span>Il diario di lettura del tuo gruppo</p>
+          <h1 data-words>Tieni traccia di ogni libro che leggi</h1>
+          <p data-reveal=".35">Cataloga le tue letture, scrivi note e condividile con il tuo gruppo di amici. Semplice, veloce, gratuito.</p>
+          <div class="hero-actions" data-reveal=".5">
             <a href="login.html#register" class="btn-hero-primary">Crea un account</a>
             <a href="login.html" class="btn-hero-secondary">Ho già un account</a>
           </div>
         </div>
 
         <div class="hero-preview" aria-hidden="true">
+          <div class="hero-shelf">
+            <div class="shelf-row">
+            <span class="spine" style="--cloth:#62622f;--w:44px;--h:206px"><span class="spine-title">L'amica geniale</span><span class="spine-author">Ferrante</span></span>
+            <span class="spine" style="--cloth:#9a6f26;--w:34px;--h:188px"><span class="spine-title">Le città invisibili</span><span class="spine-author">Calvino</span></span>
+            <span class="spine" style="--cloth:#2f5446;--w:46px;--h:214px"><span class="spine-title">Lessico famigliare</span><span class="spine-author">Ginzburg</span></span>
+            <span class="spine" style="--cloth:#44535e;--w:40px;--h:196px"><span class="spine-title">Il sistema periodico</span><span class="spine-author">Levi</span></span>
+            <span class="spine" style="--cloth:#5a3650;--w:58px;--h:222px"><span class="spine-title">Il nome della rosa</span><span class="spine-author">Eco</span></span>
+            <span class="spine" style="--cloth:#2b3b57;--w:28px;--h:170px"><span class="spine-title">Seta</span><span class="spine-author">Baricco</span></span>
+            <span class="spine" style="--cloth:#8c3f2a;--w:48px;--h:204px"><span class="spine-title">Il Gattopardo</span><span class="spine-author">Lampedusa</span></span>
+            <span class="spine" style="--cloth:#2f5446;--w:36px;--h:190px"><span class="spine-title">Sostiene Pereira</span><span class="spine-author">Tabucchi</span></span>
+            <span class="spine" style="--cloth:#2b3b57;--w:52px;--h:212px"><span class="spine-title">La coscienza di Zeno</span><span class="spine-author">Svevo</span></span>
+            <span class="spine spine-lean" style="--cloth:#7a2e33;--w:60px;--h:200px"><span class="spine-title">La storia</span><span class="spine-author">Morante</span></span>
+            <span class="bookend"></span>
+            </div>
+            <div class="shelf-plank"></div>
+          </div>
           <div class="preview-window">
             <div class="preview-head">
               <div>
@@ -98,31 +130,61 @@
       </div>
     </section>
 
-    <section class="features">
+    <section class="features features-dark">
       <div class="features-inner">
-        <h2>Un diario di lettura da tenere insieme</h2>
+        <h2 data-reveal>Un diario di lettura da tenere insieme</h2>
         <div class="features-grid">
-          <div class="feature-card">
+          <div class="feature-card" data-reveal>
             <svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
             <h3>Catalogo personale</h3>
             <p>Aggiungi ogni libro con titolo, autore, date di lettura, pagine e le tue note personali.</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card" data-reveal>
             <svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <h3>Gruppi di lettura</h3>
             <p>Crea un gruppo, invita gli amici con un codice e guarda cosa stanno leggendo. Un like o un commento su ogni libro.</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card" data-reveal>
             <svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
             <h3>Note e citazioni</h3>
             <p>Salva la frase che ti ha colpito, il libro riassunto in una riga e i tuoi pensieri a margine.</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card" data-reveal>
             <svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <h3>Privato o condiviso</h3>
             <p>Ogni scheda può restare solo tua o andare nei gruppi che scegli. Puoi cambiare idea quando vuoi.</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="howto">
+      <div class="howto-inner">
+        <h2 data-reveal>Si comincia in tre passi</h2>
+        <ol class="howto-steps">
+          <li data-reveal="0">
+            <span class="howto-num">01</span>
+            <h3>Crea il tuo account</h3>
+            <p>Bastano un'email e un nickname: è quello che vedranno i tuoi amici.</p>
+          </li>
+          <li data-reveal=".1">
+            <span class="howto-num">02</span>
+            <h3>Apri un gruppo</h3>
+            <p>Creane uno e condividi il codice invito, oppure entra in quello dei tuoi amici.</p>
+          </li>
+          <li data-reveal=".2">
+            <span class="howto-num">03</span>
+            <h3>Riempi lo scaffale</h3>
+            <p>Aggiungi i libri che leggi: compaiono sullo scaffale del gruppo, pronti per like e commenti.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="final-cta-inner" data-reveal>
+        <h2>Il prossimo libro, leggetelo insieme</h2>
+        <a href="login.html#register" class="btn-hero-primary">Crea un account</a>
       </div>
     </section>
   </main>

@@ -15,8 +15,9 @@ async function loadActivity() {
     const uid = currentUser.id;
 
     // Passo 1: recupera gli ID dei libri dell'utente (necessario per le query "ricevuti")
-    const { data: myBooks } = await db.from('books').select('id').eq('owner_id', uid);
+    const { data: myBooks } = await db.from('books').select('id, title, pages, start_date, end_date').eq('owner_id', uid);
     const myBookIds = (myBooks ?? []).map(b => b.id);
+    renderReadingStats(document.getElementById('reading-stats'), myBooks ?? []);
 
     // Passo 2: tutte le altre query in parallelo
     const [

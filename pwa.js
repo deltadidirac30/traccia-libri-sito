@@ -8,6 +8,33 @@ if (window.top !== window.self) {
     try { window.top.location.replace(window.location.href); } catch (_) { document.documentElement.style.display = 'none'; }
 }
 
+// --- Tema chiaro / notte ---
+// L'attributo data-theme è già impostato da uno script nel <head> (niente lampi).
+function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem('tl-theme', theme); } catch (_) { /* navigazione privata */ }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = theme === 'dark' ? '#12100e' : '#f8f6f2';
+}
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-theme-toggle]');
+    if (!btn) return;
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduce) { applyTheme(next); return; }
+    // Il nuovo tema si apre a cerchio partendo dal pulsante
+    const r = btn.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const root = document.documentElement;
+    root.style.setProperty('--tx', x + 'px');
+    root.style.setProperty('--ty', y + 'px');
+    root.style.setProperty('--tr', Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 'px');
+    root.classList.add('theme-switching');
+    const t = document.startViewTransition(() => applyTheme(next));
+    t.finished.finally(() => root.classList.remove('theme-switching'));
+});
+if (document.documentElement.dataset.theme) applyTheme(document.documentElement.dataset.theme);
+
 // --- Service worker: rende il sito installabile ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

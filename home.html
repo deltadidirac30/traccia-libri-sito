@@ -3,6 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script>
+    // Tema: scelta salvata, altrimenti quello del sistema (prima del disegno, niente lampi)
+    (function () {
+      try {
+        var t = localStorage.getItem('tl-theme');
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = t;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+  <meta name="color-scheme" content="light dark">
   <title>Home — Traccia Libri Lettura</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,10 +68,12 @@
       </a>
     </div>
 
+    <section class="shelf-section" id="home-shelf" hidden></section>
+
     <div class="home-layout">
       <section class="home-recent" aria-labelledby="recent-title">
         <div class="section-head">
-          <h2 class="section-title" id="recent-title">Ultime letture nei tuoi gruppi</h2>
+          <h2 class="section-title" id="recent-title">Aggiunti di recente</h2>
           <a href="libri.html" class="section-link">Vedi tutti</a>
         </div>
         <div id="recent-books" class="home-book-list">
@@ -133,7 +146,7 @@
         .select('*')
         .eq('visibility', 'group')
         .order('created_at', { ascending: false })
-        .limit(6);
+        .limit(30);
 
       if (!books || books.length === 0) {
         recentEl.innerHTML = `
@@ -146,10 +159,14 @@
         return;
       }
 
-      recentEl.innerHTML = books.map(book => {
+      renderShelf(document.getElementById('home-shelf'), books, {
+        title: 'Lo scaffale dei tuoi gruppi',
+      });
+
+      recentEl.innerHTML = books.slice(0, 5).map(book => {
         const period = readingPeriod(book.start_date, book.end_date);
         return `
-          <a href="scheda.html?id=${book.id}" class="home-book-row">
+          <a href="scheda.html?id=${book.id}" class="home-book-row" data-title="${sanitize(book.title)}" data-author="${sanitize(book.author)}">
             ${bookCover(book, 'sm')}
             <span class="home-book-text">
               <span class="home-book-title">${sanitize(book.title)}</span>

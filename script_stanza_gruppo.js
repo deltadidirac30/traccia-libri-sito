@@ -204,6 +204,8 @@ async function loadRoom() {
         ?.addEventListener('click', () => deleteGroup(group.id, group.name));
 
     // --- Render libri ---
+    renderShelf(document.getElementById('room-shelf'), books, { title: 'Lo scaffale del gruppo' });
+
     const booksContainer = document.getElementById('books-container');
 
     if (books.length === 0) {

@@ -26,6 +26,8 @@ async function loadMyBooks() {
         console.error(error);
     }
 
+    renderShelf(document.getElementById('my-shelf'), books ?? [], { title: 'La tua libreria' });
+
     if (!books || books.length === 0) {
         booksList.innerHTML = `
             <div class="empty-state">
