@@ -191,12 +191,17 @@ async function loadRoom() {
                     <code class="room-invite-code">${sanitize(group.invite_code)}</code>
                     <button class="btn-secondary btn-sm" onclick="copyInviteCode('${sanitize(group.invite_code)}')">${icon('copy', 14)} Copia</button>
                 </div>
-                <button class="delete-button" onclick="deleteGroup('${group.id}', '${sanitize(group.name)}')">Elimina gruppo</button>
+                <button class="delete-button" id="delete-group-btn">Elimina gruppo</button>
             </div>` : `
             <div class="room-header-actions">
                 <button class="btn-secondary" onclick="leaveGroup('${group.id}')">Lascia gruppo</button>
             </div>`}
         </div>`;
+
+    // Il nome del gruppo è testo libero (può contenere apostrofi o virgolette):
+    // lo passiamo dalla variabile, mai dentro un attributo onclick.
+    document.getElementById('delete-group-btn')
+        ?.addEventListener('click', () => deleteGroup(group.id, group.name));
 
     // --- Render libri ---
     const booksContainer = document.getElementById('books-container');
