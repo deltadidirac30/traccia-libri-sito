@@ -180,12 +180,14 @@ document.getElementById('cancel-edit-button').addEventListener('click', () => {
     if (!currentUser) return;
     initNavbar();   // in parallelo con i dati della pagina
 
-    // Carica i gruppi dell'utente per il selettore visibilità
-    const { data: memberships } = await db
+    // I gruppi (per il selettore visibilità) arrivano insieme ai libri, senza farli aspettare
+    const groupsReady = db
         .from('group_members')
         .select('groups(id, name)')
-        .eq('user_id', currentUser.id);
-    editUserGroups = memberships?.map(m => m.groups).filter(Boolean) ?? [];
+        .eq('user_id', currentUser.id)
+        .then(({ data: memberships }) => {
+            editUserGroups = memberships?.map(m => m.groups).filter(Boolean) ?? [];
+        });
 
-    await loadMyBooks();
+    await Promise.all([loadMyBooks(), groupsReady]);
 })();

@@ -2737,3 +2737,138 @@ main { view-transition-name: page; }
     color: var(--t2);
     transform: translateY(-2px);
 }
+
+/* ===================================================================
+   TELEFONO — barra in basso da app ed effetti al tocco
+=================================================================== */
+.tabbar { display: none; }
+
+@media (max-width: 768px) {
+    /* le voci passano nella barra in basso; in alto restano tema, campanella e profilo */
+    .nav-links { display: none !important; }
+    .nav-actions .profile-menu { display: flex; }
+    .navbar { padding-top: env(safe-area-inset-top); }
+    body:has(.tabbar) { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
+    body:has(.tabbar) #toast-container { bottom: calc(94px + env(safe-area-inset-bottom)); }
+
+    .tabbar {
+        --pad: 6px;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        position: fixed;
+        z-index: 210;
+        left: 12px;
+        right: 12px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        height: 64px;
+        padding: var(--pad);
+        border-radius: 24px;
+        background: color-mix(in srgb, var(--surface) 78%, transparent);
+        backdrop-filter: saturate(170%) blur(18px);
+        -webkit-backdrop-filter: saturate(170%) blur(18px);
+        border: 1px solid var(--line);
+        box-shadow: 0 14px 34px -14px rgba(20, 14, 6, .35), 0 2px 6px rgba(20, 14, 6, .06);
+        view-transition-name: tabbar;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    :root[data-theme="dark"] .tabbar { box-shadow: 0 14px 34px -12px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .04); }
+
+    /* La pillola: un solo elemento che scivola sotto la voce attiva */
+    .tab-pill {
+        position: absolute;
+        top: var(--pad);
+        bottom: var(--pad);
+        left: var(--pad);
+        width: calc((100% - 2 * var(--pad)) / 5);
+        border-radius: 18px;
+        background: var(--raised);
+        box-shadow: inset 0 0 0 1px var(--line);
+        transform: translateX(calc(var(--i, 0) * 100%));
+        transition: transform .55s cubic-bezier(.34, 1.32, .64, 1), opacity .2s var(--ease);
+        view-transition-name: tab-pill;
+    }
+    .tabbar:not(:has(.tab.active:not(.tab-add))) .tab-pill { opacity: 0; transition: none; view-transition-name: none; }
+
+    .tab {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        min-width: 0;
+        border-radius: 18px;
+        color: var(--t3);
+        text-decoration: none;
+        font-size: 10.5px;
+        font-weight: 500;
+        letter-spacing: .01em;
+        -webkit-tap-highlight-color: transparent;
+        transition: color .25s var(--ease);
+    }
+    .tab svg { transition: transform .5s cubic-bezier(.34, 1.7, .64, 1); }
+    .tab .tab-fill { fill: transparent; transition: fill .3s var(--ease); }
+    .tab.active { color: var(--t1); }
+    .tab.active svg { transform: translateY(-1px) scale(1.06); }
+    .tab.active .tab-fill { fill: color-mix(in srgb, var(--accent) 24%, transparent); }
+    .tab:active svg { transform: scale(.82); transition-duration: .12s; }
+    .tab-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+    .tab-add { justify-content: center; }
+    .tab-add-btn {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        background: var(--ink-bg);
+        color: var(--ink-fg);
+        box-shadow: 0 8px 18px -8px rgba(20, 14, 6, .55);
+        transition: transform .5s cubic-bezier(.34, 1.6, .64, 1), background-color .25s var(--ease);
+    }
+    .tab-add-btn svg { transition: transform .5s cubic-bezier(.34, 1.6, .64, 1); }
+    .tab-add:active .tab-add-btn { transform: scale(.88); transition-duration: .12s; }
+    .tab-add:active .tab-add-btn svg { transform: rotate(90deg); }
+    .tab-add.active .tab-add-btn { background: var(--accent); color: #fff; box-shadow: 0 8px 20px -8px var(--accent); }
+    .tab-add.active .tab-add-btn svg { transform: rotate(90deg); }
+
+    /* La barra resta ferma durante il cambio pagina; la pillola scivola */
+    ::view-transition-group(tabbar) { animation: none; }
+    ::view-transition-old(tabbar) { display: none; }
+    ::view-transition-new(tabbar) { animation: none; }
+    ::view-transition-group(tab-pill) { animation-duration: .5s; animation-timing-function: cubic-bezier(.34, 1.32, .64, 1); }
+    ::view-transition-group(page) { z-index: 0; }
+
+    /* Sul telefono la pagina entra da un lato, secondo la direzione della voce */
+    ::view-transition-old(page) { animation: pageOutM .15s cubic-bezier(.4, 0, 1, 1) both; }
+    ::view-transition-new(page) { animation: pageInM .36s cubic-bezier(.22, 1, .36, 1) .06s both; }
+    :root.vt-back::view-transition-old(page) { animation-name: pageOutMBack; }
+    :root.vt-back::view-transition-new(page) { animation-name: pageInMBack; }
+}
+@keyframes pageOutM     { to   { opacity: 0; transform: translateX(-28px) scale(.985); } }
+@keyframes pageInM      { from { opacity: 0; transform: translateX(36px); } }
+@keyframes pageOutMBack { to   { opacity: 0; transform: translateX(28px) scale(.985); } }
+@keyframes pageInMBack  { from { opacity: 0; transform: translateX(-36px); } }
+
+/* Tocco sulle schede: la luce nasce sotto il dito e la scheda si abbassa un poco */
+@media (hover: none), (pointer: coarse) {
+    :is(.book-card, .group-room-card, .home-nav-card, .home-book-row, .activity-item) {
+        transition: transform .45s cubic-bezier(.34, 1.4, .64, 1), box-shadow .3s var(--ease), border-color .3s var(--ease);
+        -webkit-tap-highlight-color: transparent;
+    }
+    :is(.book-card, .group-room-card, .home-nav-card, .home-book-row, .activity-item).is-pressed {
+        transform: scale(.975);
+        transition-duration: .14s;
+    }
+    :is(.book-card, .group-room-card, .home-nav-card, .chart-card, .card).is-pressed::after,
+    :is(.book-card, .group-room-card, .chart-card).is-pressed::before { opacity: 1; transition-duration: .08s; }
+    .book-card.is-pressed .cover, .home-book-row.is-pressed .cover { transform: perspective(400px) rotateY(-16deg) translateX(2px); }
+    .home-book-row { position: relative; border-radius: var(--r-sm); }
+
+    /* Copertina della scheda: si inclina seguendo il dito (o il telefono) */
+    .book-aside .cover-lg { touch-action: pan-y; }
+    .spine.is-pressed { --lift: 1; }
+    .spine.is-near   { --lift: .45; }
+}

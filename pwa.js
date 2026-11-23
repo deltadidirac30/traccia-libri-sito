@@ -53,7 +53,26 @@ window.addEventListener('pageswap', (e) => {
 // --- Service worker: rende il sito installabile ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+            // L'app installata resta aperta a lungo in background: quando torna in primo
+            // piano controlla se c'è una versione nuova (al massimo ogni 10 minuti).
+            let lastCheck = Date.now();
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState !== 'visible' || Date.now() - lastCheck < 10 * 60 * 1000) return;
+                lastCheck = Date.now();
+                reg.update().catch(() => {});
+            });
+        }).catch(() => {});
+    });
+    // Versione nuova installata mentre l'app era aperta: se la pagina non è in uso
+    // (nessun campo in modifica) si ricarica da sola, così non serve chiudere e riaprire.
+    let hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController) { hadController = true; return; }   // prima installazione: niente da ricaricare
+        const busy = document.querySelector('input:focus, textarea:focus, .confirm-overlay, dialog[open]')
+            || [...document.querySelectorAll('input, textarea')].some(el => el.type !== 'hidden' && el.value && el.defaultValue !== el.value);
+        // se si sta scrivendo qualcosa non si tocca nulla: la versione nuova arriva al prossimo cambio pagina
+        if (!busy) location.reload();
     });
 }
 

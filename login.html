@@ -13,6 +13,10 @@
         if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
         // pagina già vista in questa sessione: niente animazioni d'ingresso
         if (sessionStorage.getItem('tl:seen:' + location.pathname.split('/').pop())) document.documentElement.classList.add('tl-seen');
+        // direzione del cambio pagina (la pagina entra da destra o da sinistra)
+        var d = sessionStorage.getItem('tl:dir'); sessionStorage.removeItem('tl:dir');
+        var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        if (d === 'back' || (!d && nav && nav.type === 'back_forward')) document.documentElement.classList.add('vt-back');
       } catch (e) { document.documentElement.dataset.theme = 'light'; }
     })();
   </script>

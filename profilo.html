@@ -13,6 +13,10 @@
         if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
         // pagina già vista in questa sessione: niente animazioni d'ingresso
         if (sessionStorage.getItem('tl:seen:' + location.pathname.split('/').pop())) document.documentElement.classList.add('tl-seen');
+        // direzione del cambio pagina (la pagina entra da destra o da sinistra)
+        var d = sessionStorage.getItem('tl:dir'); sessionStorage.removeItem('tl:dir');
+        var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        if (d === 'back' || (!d && nav && nav.type === 'back_forward')) document.documentElement.classList.add('vt-back');
       } catch (e) { document.documentElement.dataset.theme = 'light'; }
     })();
   </script>
@@ -50,13 +54,17 @@
         <li class="nav-cta-item"><a href="aggiungi_libro.html" class="nav-cta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Aggiungi libro</a></li>
         <li id="nav-profile-slot"></li>
       </ul>
-      <button class="nav-hamburger" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </button>
     </div>
   </header>
+  <!-- Barra in basso (solo telefono): la pillola scivola sulla voce toccata -->
+  <nav class="tabbar" aria-label="Navigazione principale" style="--i:-1">
+    <span class="tab-pill" aria-hidden="true"></span>
+    <a href="home.html" class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="tab-fill" d="M4 10.4 12 4l8 6.4V19a1 1 0 0 1-1 1h-4.25v-5.25h-5.5V20H5a1 1 0 0 1-1-1z"/></svg><span class="tab-label">Home</span></a>
+    <a href="libri.html" class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect class="tab-fill" x="4" y="4" width="4" height="16" rx="1"/><rect class="tab-fill" x="10" y="6" width="4" height="14" rx="1"/><path class="tab-fill" d="m16.2 6.6 2.9-.8 2.9 13.4-2.9.8z"/></svg><span class="tab-label">Libri</span></a>
+    <a href="aggiungi_libro.html" class="tab tab-add" aria-label="Aggiungi libro"><span class="tab-add-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></a>
+    <a href="miei_libri.html" class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="tab-fill" d="M6.5 4h11a1 1 0 0 1 1 1v15l-6.5-4-6.5 4V5a1 1 0 0 1 1-1z"/></svg><span class="tab-label">I miei</span></a>
+    <a href="gruppi.html" class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle class="tab-fill" cx="9" cy="8.5" r="3.2"/><path d="M3.2 19.5c.6-3.3 3-5.2 5.8-5.2s5.2 1.9 5.8 5.2"/><path d="M15.5 5.6a3.1 3.1 0 0 1 0 5.8"/><path d="M17.6 14.6c1.7.7 2.8 2.4 3.2 4.9"/></svg><span class="tab-label">Gruppi</span></a>
+  </nav>
 
   <main class="page-content-narrow">
     <div class="page-header">
@@ -132,10 +140,6 @@
   </footer>
 
   <script>
-    document.getElementById('nav-toggle').addEventListener('click', () => {
-      const open = document.getElementById('nav-links').classList.toggle('open');
-      document.getElementById('nav-toggle').setAttribute('aria-expanded', open);
-    });
   </script>
   <script src="script_profilo.js" defer></script>
   <script type="speculationrules">

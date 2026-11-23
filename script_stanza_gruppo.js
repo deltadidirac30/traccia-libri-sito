@@ -155,14 +155,17 @@ async function loadRoom() {
     }
     currentGroupId = groupId;
 
-    const [groupResult, booksResult, membersResult] = await Promise.all([
+    // Tutto in una volta: like e commenti visibili (la RLS li limita ai libri dell'utente) si filtrano qui
+    const [groupResult, booksResult, membersResult, likesResult, commentsResult] = await Promise.all([
         db.from('groups').select('*').eq('id', groupId).single(),
         db.from('books').select('*').contains('group_ids', [groupId]).eq('visibility', 'group').order('created_at', { ascending: false }),
         db.from('group_members')
             .select('user_id, role, joined_at, profiles(nickname)')
             .eq('group_id', groupId)
             .order('role', { ascending: false })
-            .order('joined_at', { ascending: true })
+            .order('joined_at', { ascending: true }),
+        db.from('book_likes').select('book_id, user_id'),
+        db.from('book_comments').select('book_id'),
     ]);
 
     const group   = groupResult.data;
@@ -217,13 +220,9 @@ async function loadRoom() {
                 <a href="aggiungi_libro.html" class="btn-primary btn">Aggiungi un libro</a>
             </div>`;
     } else {
-        // Batch carica likes e commenti
-        const bookIds = books.map(b => b.id);
-        const [{ data: allLikes }, { data: myLikes }, { data: allComments }] = await Promise.all([
-            db.from('book_likes').select('book_id').in('book_id', bookIds),
-            db.from('book_likes').select('book_id').in('book_id', bookIds).eq('user_id', currentUser.id),
-            db.from('book_comments').select('book_id').in('book_id', bookIds)
-        ]);
+        const allLikes    = likesResult.data ?? [];
+        const myLikes     = allLikes.filter(l => l.user_id === currentUser.id);
+        const allComments = commentsResult.data ?? [];
 
         const likeCounts     = {};
         const commentCounts  = {};

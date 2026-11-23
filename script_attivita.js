@@ -14,22 +14,8 @@ function renderList(containerId, items, renderFn, emptyMsg) {
 async function loadActivity() {
     const uid = currentUser.id;
 
-    // Passo 1: recupera gli ID dei libri dell'utente (necessario per le query "ricevuti")
-    const { data: myBooks } = await db.from('books').select('id, title, pages, start_date, end_date').eq('owner_id', uid);
-    const myBookIds = (myBooks ?? []).map(b => b.id);
-    renderReadingStats(document.getElementById('reading-stats'), myBooks ?? []);
-
-    // Passo 2: tutte le altre query in parallelo
-    const [
-        booksCountResult,
-        groupsCountResult,
-        commentsCountResult,
-        likesCountResult,
-        commentsSentResult,
-        likesGivenResult,
-        likesReceivedResult,
-        commentsReceivedResult
-    ] = await Promise.all([
+    // Le richieste che non dipendono dai libri dell'utente partono subito, insieme a quella dei libri
+    const independent = Promise.all([
         db.from('books').select('*', { count: 'exact', head: true }).eq('owner_id', uid),
         db.from('group_members').select('*', { count: 'exact', head: true }).eq('user_id', uid),
         db.from('book_comments').select('*', { count: 'exact', head: true }).eq('user_id', uid),
@@ -44,6 +30,20 @@ async function loadActivity() {
             .eq('user_id', uid)
             .order('created_at', { ascending: false })
             .limit(5),
+    ]);
+    independent.catch(() => {});
+
+    // I libri dell'utente servono per grafici e per "ricevuti"
+    const { data: myBooks } = await db.from('books').select('id, title, pages, start_date, end_date').eq('owner_id', uid);
+    const myBookIds = (myBooks ?? []).map(b => b.id);
+    renderReadingStats(document.getElementById('reading-stats'), myBooks ?? []);
+
+    const [
+        [booksCountResult, groupsCountResult, commentsCountResult, likesCountResult, commentsSentResult, likesGivenResult],
+        likesReceivedResult,
+        commentsReceivedResult
+    ] = await Promise.all([
+        independent,
         myBookIds.length > 0
             ? db.from('book_likes')
                 .select('book_id, created_at, books(id, title)')

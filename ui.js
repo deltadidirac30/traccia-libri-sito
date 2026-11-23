@@ -217,6 +217,158 @@
     }
 
     // -----------------------------------------------------------------
+    // 6b. Telefono: barra in basso con la pillola che scivola
+    // -----------------------------------------------------------------
+    const tabbar = document.querySelector('.tabbar');
+    if (tabbar) {
+        const tabs = [...tabbar.querySelectorAll('.tab')];
+        const startI = tabbar.style.getPropertyValue('--i');
+        const current = tabs.findIndex(t => t.classList.contains('active'));
+        tabbar.addEventListener('click', (e) => {
+            const tab = e.target.closest('.tab');
+            if (!tab || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            const i = tabs.indexOf(tab);
+            try { sessionStorage.setItem('tl:dir', current >= 0 && i < current ? 'back' : 'fwd'); } catch (_) { /* niente */ }
+            // la pillola parte subito verso la voce toccata, senza aspettare la pagina nuova
+            if (!tab.classList.contains('tab-add')) { tabbar.style.setProperty('--i', i); void tabbar.offsetWidth; }
+            tabs.forEach(t => t.classList.toggle('active', t === tab));
+            navigator.vibrate?.(6);
+        });
+        // tornando indietro (pagina tenuta in memoria dal browser) la barra torna com'era
+        window.addEventListener('pageshow', (e) => {
+            if (!e.persisted) return;
+            tabbar.style.setProperty('--i', startI);
+            tabs.forEach((t, k) => t.classList.toggle('active', k === current));
+        });
+    }
+
+    // -----------------------------------------------------------------
+    // 6c. Al tocco (telefono e tablet) al posto degli effetti del mouse
+    // -----------------------------------------------------------------
+    if (!fine && !reduce) {
+        // Schede: luce sotto il dito e leggera pressione
+        const PRESS = '.book-card, .group-room-card, .home-nav-card, .home-book-row, .activity-item, .chart-card';
+        let pressed = null, armed = 0;
+        const release = (keep) => {
+            clearTimeout(armed);
+            const el = pressed; pressed = null;
+            if (!el) return;
+            if (keep && !el.classList.contains('is-pressed')) el.classList.add('is-pressed');   // tocco rapido: si vede lo stesso
+            setTimeout(() => el.classList.remove('is-pressed'), keep ? 170 : 0);
+        };
+        document.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'mouse') return;
+            const el = e.target.closest?.(PRESS);
+            if (!el || e.target.closest('button, input, textarea, select, label, .like-btn, .comment-form')) return;
+            const r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+            el.style.setProperty('--my', (e.clientY - r.top) + 'px');
+            pressed = el;
+            // un attimo di attesa: se il dito sta scorrendo la pagina non si accende nulla
+            armed = setTimeout(() => { if (pressed === el) el.classList.add('is-pressed'); }, 70);
+        }, { passive: true });
+        document.addEventListener('pointerup', () => release(true), { passive: true });
+        document.addEventListener('pointercancel', () => release(false), { passive: true });
+        window.addEventListener('scroll', () => release(false), { passive: true, capture: true });
+
+        // Scaffale: il libro toccato si alza, i vicini lo seguono un poco
+        document.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'mouse') return;
+            const sp = e.target.closest?.('.spine');
+            if (!sp) return;
+            const near = [sp.previousElementSibling, sp.nextElementSibling].filter(n => n?.classList.contains('spine'));
+            sp.classList.add('is-pressed');
+            near.forEach(n => n.classList.add('is-near'));
+            const done = () => {
+                setTimeout(() => { sp.classList.remove('is-pressed'); near.forEach(n => n.classList.remove('is-near')); }, 220);
+                window.removeEventListener('pointerup', done); window.removeEventListener('pointercancel', done);
+            };
+            window.addEventListener('pointerup', done); window.addEventListener('pointercancel', done);
+        }, { passive: true });
+
+        // Copertina della scheda: si inclina seguendo il dito
+        const tilt = (cover, x, y, k = 1) => {
+            if (!cover.querySelector('.cover-glare')) cover.insertAdjacentHTML('beforeend', '<span class="cover-glare"></span>');
+            const r = cover.getBoundingClientRect();
+            const px = Math.min(1, Math.max(0, (x - r.left) / r.width)), py = Math.min(1, Math.max(0, (y - r.top) / r.height));
+            cover.style.setProperty('--ry', ((px - .5) * 22 * k).toFixed(2) + 'deg');
+            cover.style.setProperty('--rx', ((.5 - py) * 16 * k).toFixed(2) + 'deg');
+            cover.style.setProperty('--gx', (px * 100).toFixed(1) + '%');
+            cover.style.setProperty('--gy', (py * 100).toFixed(1) + '%');
+            cover.style.setProperty('--glare', k);
+        };
+        const untilt = (cover) => {
+            cover.classList.remove('is-tilting', 'is-touching');
+            cover.style.setProperty('--rx', '0deg'); cover.style.setProperty('--ry', '0deg'); cover.style.setProperty('--glare', 0);
+        };
+        document.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'mouse') return;
+            const cover = e.target.closest?.('.book-aside .cover-lg');
+            if (!cover) return;
+            cover.classList.add('is-touching');
+            tilt(cover, e.clientX, e.clientY);
+            const move = (ev) => { cover.classList.add('is-tilting'); tilt(cover, ev.clientX, ev.clientY); };
+            const end = () => {
+                untilt(cover);
+                cover.removeEventListener('pointermove', move);
+                cover.removeEventListener('pointerup', end); cover.removeEventListener('pointercancel', end);
+            };
+            cover.addEventListener('pointermove', move);
+            cover.addEventListener('pointerup', end); cover.addEventListener('pointercancel', end);
+        });
+
+        // Android: la copertina segue anche l'inclinazione del telefono (su iPhone servirebbe un permesso: niente)
+        if (document.getElementById('book-details') && 'DeviceOrientationEvent' in window
+            && typeof DeviceOrientationEvent.requestPermission !== 'function') {
+            let base = null, raf = 0, last = null;
+            window.addEventListener('deviceorientation', (ev) => {
+                if (ev.beta == null || ev.gamma == null) return;
+                last = ev;
+                if (raf) return;
+                raf = requestAnimationFrame(() => {
+                    raf = 0;
+                    const cover = document.querySelector('.book-aside .cover-lg');
+                    if (!cover || cover.classList.contains('is-touching')) return;
+                    if (!base) base = { b: last.beta, g: last.gamma };
+                    // il "dritto" si adatta piano a come si tiene il telefono
+                    base.b += (last.beta - base.b) * .03; base.g += (last.gamma - base.g) * .03;
+                    const ry = Math.max(-10, Math.min(10, (last.gamma - base.g) * .7));
+                    const rx = Math.max(-8, Math.min(8, -(last.beta - base.b) * .5));
+                    if (!cover.querySelector('.cover-glare')) cover.insertAdjacentHTML('beforeend', '<span class="cover-glare"></span>');
+                    cover.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+                    cover.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+                    cover.style.setProperty('--gx', (50 + ry * 4).toFixed(1) + '%');
+                    cover.style.setProperty('--gy', (35 - rx * 4).toFixed(1) + '%');
+                    cover.style.setProperty('--glare', Math.min(1, (Math.abs(rx) + Math.abs(ry)) / 8).toFixed(2));
+                });
+            });
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 6d. Mentre si scorre, le schede più in basso entrano dal basso
+    //     (si usa "translate": non tocca le altre trasformazioni)
+    // -----------------------------------------------------------------
+    const REVEAL = '.book-card, .group-room-card, .home-book-row, .activity-item, .room-member-item, .stat-card, .chart-card, .stat-tile';
+    let revealBatch = 0, revealFrame = 0;
+    const revealIO = (!reduce && 'IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
+        for (const en of entries) {
+            if (!en.isIntersecting) continue;
+            revealIO.unobserve(en.target);
+            en.target.animate(
+                [{ opacity: 0, translate: '0 26px', scale: '.98' }, { opacity: 1, translate: '0 0', scale: '1' }],
+                { duration: 560, delay: Math.min(revealBatch++, 4) * 70, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'backwards' });
+            if (!revealFrame) revealFrame = requestAnimationFrame(() => { revealFrame = 0; revealBatch = 0; });
+        }
+    }, { rootMargin: '0px 0px 80px 0px' }) : null;
+    const belowFold = (el) => el.getBoundingClientRect().top > window.innerHeight + 10;
+    function watchReveal(el) {
+        if (revealIO && el.matches(REVEAL) && belowFold(el)) { revealIO.observe(el); return true; }
+        return false;
+    }
+    document.querySelectorAll(REVEAL).forEach(watchReveal);
+
+    // -----------------------------------------------------------------
     // 7. Motion: ingresso a cascata, numeri che contano, rivelazioni allo scroll
     // -----------------------------------------------------------------
     const M = window.Motion;
@@ -238,10 +390,12 @@
     let scheduled = false;
     function flush() {
         scheduled = false;
-        if (seenPage) { queue = []; return; }
-        // i contenuti che sostituiscono una copia già sullo schermo non rientrano
-        const els = queue.filter(el => el.isConnected && !el.closest('[data-restored]'));
+        // quelli ancora sotto lo schermo entreranno quando ci si arriva scorrendo
+        const fresh = queue.filter(el => el.isConnected && !watchReveal(el));
         queue = [];
+        if (seenPage) return;
+        // i contenuti che sostituiscono una copia già sullo schermo non rientrano
+        const els = fresh.filter(el => !el.closest('[data-restored]'));
         if (!els.length) return;
         const spines = els.filter(el => el.matches('.spine'));
         const others = els.filter(el => !el.matches('.spine'));

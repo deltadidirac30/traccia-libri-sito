@@ -8,11 +8,16 @@ async function loadGroupBooks() {
     showLoading(booksList);
 
     // La RLS filtra automaticamente: l'utente vede solo i libri dei suoi gruppi
-    const { data: books, error } = await db
-        .from('books')
-        .select('*')
-        .eq('visibility', 'group')
-        .order('created_at', { ascending: false });
+    // Libri, like e commenti partono insieme: una sola attesa invece di due.
+    // La RLS fa vedere like e commenti solo dei libri visibili all'utente.
+    const [{ data: books, error }, { data: likeRows }, { data: allComments }] = await Promise.all([
+        db.from('books')
+            .select('*')
+            .eq('visibility', 'group')
+            .order('created_at', { ascending: false }),
+        db.from('book_likes').select('book_id, user_id'),
+        db.from('book_comments').select('book_id'),
+    ]);
 
     if (error) {
         console.error(error);
@@ -31,13 +36,8 @@ async function loadGroupBooks() {
 
     booksList.innerHTML = '';
 
-    // Batch carica like e commenti
-    const bookIds = books.map(b => b.id);
-    const [{ data: allLikes }, { data: myLikes }, { data: allComments }] = await Promise.all([
-        db.from('book_likes').select('book_id').in('book_id', bookIds),
-        db.from('book_likes').select('book_id').in('book_id', bookIds).eq('user_id', currentUser.id),
-        db.from('book_comments').select('book_id').in('book_id', bookIds)
-    ]);
+    const allLikes = likeRows ?? [];
+    const myLikes  = allLikes.filter(l => l.user_id === currentUser.id);
 
     const likeCounts    = {};
     const commentCounts = {};

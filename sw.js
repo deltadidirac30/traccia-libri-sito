@@ -6,7 +6,7 @@
 // 2. Riceve e mostra le notifiche push.
 // I dati (Supabase) non passano mai dalla cache.
 // =====================================================================
-const VERSION = 'tl-v5';
+const VERSION = 'tl-v6';
 const PAGES = [
     './', './index.html', './login.html', './reset_password.html', './home.html', './libri.html',
     './miei_libri.html', './aggiungi_libro.html', './gruppi.html', './stanza_gruppo.html',

@@ -6,16 +6,28 @@ function getBookIdFromUrl() {
     return new URLSearchParams(window.location.search).get('id');
 }
 
+// Le richieste partono subito, tutte insieme (Promise.resolve le avvia: i builder di Supabase sono pigri)
+function fetchLikes(bookId) {
+    return Promise.all([
+        db.from('book_likes').select('*', { count: 'exact', head: true }).eq('book_id', bookId),
+        db.from('book_likes').select('book_id').eq('book_id', bookId).eq('user_id', currentUser.id).maybeSingle()
+    ]);
+}
+function fetchComments(bookId) {
+    return Promise.resolve(db
+        .from('book_comments')
+        .select('id, content, created_at, user_id, profiles(nickname)')
+        .eq('book_id', bookId)
+        .order('created_at', { ascending: true }));
+}
+
 // --- Like ---
-async function loadLikes(book) {
+async function loadLikes(book, pending) {
     const bookId = book.id;
     const wrap   = document.getElementById('likes-section');
     if (!wrap) return;
 
-    const [{ count }, { data: myLike }] = await Promise.all([
-        db.from('book_likes').select('*', { count: 'exact', head: true }).eq('book_id', bookId),
-        db.from('book_likes').select('book_id').eq('book_id', bookId).eq('user_id', currentUser.id).maybeSingle()
-    ]);
+    const [{ count }, { data: myLike }] = await (pending || fetchLikes(bookId));
 
     const liked = !!myLike;
     wrap.innerHTML = `
@@ -53,15 +65,11 @@ async function loadLikes(book) {
 }
 
 // --- Commenti ---
-async function loadComments(bookId) {
+async function loadComments(bookId, pending) {
     const wrap = document.getElementById('comments-section');
     if (!wrap) return;
 
-    const { data: comments } = await db
-        .from('book_comments')
-        .select('id, content, created_at, user_id, profiles(nickname)')
-        .eq('book_id', bookId)
-        .order('created_at', { ascending: true });
+    const { data: comments } = await (pending || fetchComments(bookId));
 
     const listEl = document.getElementById('comments-list');
     listEl.innerHTML = '';
@@ -85,8 +93,8 @@ async function loadComments(bookId) {
         }
     }
 
-    // Event delegation per eliminazione commenti
-    listEl.addEventListener('click', async (e) => {
+    // Event delegation per eliminazione commenti (onclick: un solo gestore anche dopo ogni ricarica)
+    listEl.onclick = async (e) => {
         const btn = e.target.closest('.comment-delete-btn');
         if (!btn) return;
         const commentId = btn.dataset.id;
@@ -95,7 +103,7 @@ async function loadComments(bookId) {
             btn.closest('.comment-item').remove();
             showToast('Commento eliminato', 'success');
         }
-    });
+    };
 }
 
 async function loadBookDetails() {
@@ -107,6 +115,10 @@ async function loadBookDetails() {
         return;
     }
 
+    // Libro, like e commenti insieme: una sola attesa invece di tre in fila
+    const likesP    = fetchLikes(bookId);
+    const commentsP = fetchComments(bookId);
+    likesP.catch(() => {}); commentsP.catch(() => {});
     const { data: book, error } = await db
         .from('books')
         .select('*')
@@ -187,9 +199,11 @@ async function loadBookDetails() {
     `;
 
     // Social
-    await loadLikes(book);
+    await Promise.all([
+        loadLikes(book, likesP),
+        book.visibility === 'group' ? loadComments(bookId, commentsP) : null,
+    ]);
     if (book.visibility === 'group') {
-        await loadComments(bookId);
         document.getElementById('comment-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input   = document.getElementById('comment-input');
