@@ -40,12 +40,14 @@ if (document.documentElement.dataset.theme) applyTheme(document.documentElement.
 window.addEventListener('pagehide', () => {
     try { sessionStorage.setItem('tl:seen:' + location.pathname.split('/').pop(), '1'); } catch (_) {}
 });
-// La transizione animata tra pagine serve solo quando si apre un libro
-// (la copertina vola): per tutto il resto il cambio pagina è immediato.
+// Transizioni tra pagine: la copertina vola solo verso la scheda di un libro;
+// negli altri casi i nomi "book-cover" lasciati sulla pagina vanno tolti
 window.addEventListener('pageswap', (e) => {
     if (!e.viewTransition) return;
     const url = e.activation?.entry?.url || '';
-    if (!/scheda\.html\?id=/.test(url)) e.viewTransition.skipTransition();
+    if (!/scheda\.html\?id=/.test(url)) {
+        document.querySelectorAll('[style*="view-transition-name"]').forEach(el => { el.style.viewTransitionName = ''; });
+    }
 });
 
 // --- Service worker: rende il sito installabile ---

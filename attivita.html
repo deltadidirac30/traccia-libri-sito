@@ -10,6 +10,7 @@
         var t = localStorage.getItem('tl-theme');
         if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = t;
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
         // pagina già vista in questa sessione: niente animazioni d'ingresso
         if (sessionStorage.getItem('tl:seen:' + location.pathname.split('/').pop())) document.documentElement.classList.add('tl-seen');
       } catch (e) { document.documentElement.dataset.theme = 'light'; }
@@ -64,7 +65,7 @@
     </div>
 
     <section class="reading-stats" id="reading-stats" data-snapshot aria-label="Le tue letture">
-      <p class="loading-text">Caricamento…</p>
+      <div class="skeleton" role="status" aria-label="Caricamento"><div class="skel skel-row" style="height:110px"></div><div class="skel skel-shelf" style="height:200px"></div></div>
     </section>
 
     <h2 class="section-title section-title-lg">Nei gruppi</h2>

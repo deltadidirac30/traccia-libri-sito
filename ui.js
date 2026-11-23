@@ -176,7 +176,48 @@
     }
 
     // -----------------------------------------------------------------
-    // 5. Motion: ingresso a cascata, numeri che contano, rivelazioni allo scroll
+    // 5. Pillola che segue il mouse tra le voci della barra (stile motion.dev)
+    // -----------------------------------------------------------------
+    if (fine) {
+        const nav = document.querySelector('.nav-links');
+        if (nav) {
+            const pill = document.createElement('span');
+            pill.className = 'nav-hover';
+            pill.setAttribute('aria-hidden', 'true');
+            nav.prepend(pill);
+            let shown = false;
+            nav.addEventListener('pointerover', (e) => {
+                const a = e.target.closest('a');
+                if (!a || a.classList.contains('nav-cta') || !nav.contains(a)) return;
+                const nr = nav.getBoundingClientRect(), r = a.getBoundingClientRect();
+                if (!shown) pill.style.transition = 'opacity .2s';   // la prima volta compare sul posto
+                pill.style.transform = `translateX(${r.left - nr.left}px)`;
+                pill.style.top = (r.top - nr.top) + 'px';
+                pill.style.width = r.width + 'px';
+                pill.style.height = r.height + 'px';
+                pill.style.opacity = a.classList.contains('active') ? '0' : '1';
+                if (!shown) { pill.offsetWidth; pill.style.transition = ''; shown = true; }
+            });
+            nav.addEventListener('pointerleave', () => { pill.style.opacity = '0'; shown = false; });
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 6. Luce che segue il cursore sulle card (stile kokonutui / bklit)
+    // -----------------------------------------------------------------
+    const SPOT = '.book-card, .group-room-card, .home-nav-card, .chart-card, .howto-steps li, .card, .home-book-list, .activity-list, .preview-window';
+    if (fine) {
+        document.addEventListener('pointermove', (e) => {
+            const el = e.target.closest?.(SPOT);
+            if (!el) return;
+            const r = el.getBoundingClientRect();
+            el.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+            el.style.setProperty('--my', (e.clientY - r.top) + 'px');
+        }, { passive: true });
+    }
+
+    // -----------------------------------------------------------------
+    // 7. Motion: ingresso a cascata, numeri che contano, rivelazioni allo scroll
     // -----------------------------------------------------------------
     const M = window.Motion;
     if (!M) return;
@@ -188,7 +229,7 @@
     function dropSpines(els, startDelay, height) {
         els.forEach((el, i) => el.animate(
             [{ translate: `0 -${height}px`, opacity: 0 }, { translate: '0 0', opacity: 1 }],
-            { duration: 620, delay: startDelay + i * 45, easing: 'cubic-bezier(.34, 1.45, .64, 1)', fill: 'backwards' }));
+            { duration: 520, delay: startDelay + i * 28, easing: 'cubic-bezier(.34, 1.45, .64, 1)', fill: 'both' }));
     }
 
     const ITEMS = '.book-card, .group-room-card, .home-book-row, .activity-item, .room-member-item, .stat-card, .spine, .chart-card';
@@ -198,15 +239,16 @@
     function flush() {
         scheduled = false;
         if (seenPage) { queue = []; return; }
-        const els = queue.filter(el => el.isConnected);
+        // i contenuti che sostituiscono una copia già sullo schermo non rientrano
+        const els = queue.filter(el => el.isConnected && !el.closest('[data-restored]'));
         queue = [];
         if (!els.length) return;
         const spines = els.filter(el => el.matches('.spine'));
         const others = els.filter(el => !el.matches('.spine'));
         // I dorsi cadono sullo scaffale uno dopo l'altro, con un piccolo rimbalzo
-        if (spines.length) dropSpines(spines.slice(0, 40), 0, 36);
-        if (others.length) animate(others.slice(0, 10), { opacity: [0, 1], y: [12, 0] },
-            { duration: 0.45, ease, delay: stagger(0.05) });
+        if (spines.length) dropSpines(spines.slice(0, 40), 0, 32);
+        if (others.length) animate(others.slice(0, 12), { opacity: [0, 1], y: [10, 0], scale: [.985, 1] },
+            { duration: 0.32, ease, delay: stagger(0.03) });
     }
     function collect(node) {
         if (node.nodeType !== 1) return;
@@ -243,6 +285,8 @@
     // Titolo che entra parola per parola
     if (!seenPage) document.querySelectorAll('[data-words]').forEach(h => {
         const words = h.textContent.trim().split(/\s+/);
+        h.style.animation = 'none';
+        h.style.opacity = '1';
         h.innerHTML = words.map(w => `<span class="w">${w.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))} </span>`).join('');
         h.setAttribute('aria-label', words.join(' '));
         animate(h.querySelectorAll('.w'), { opacity: [0, 1], y: [18, 0], filter: ['blur(6px)', 'blur(0px)'] },
@@ -252,8 +296,15 @@
     // Lo scaffale dell'hero si riempie: i libri cadono uno dopo l'altro
     const heroSpines = [...document.querySelectorAll('.hero-shelf .spine')];
     if (heroSpines.length && !seenPage) {
+        heroSpines.forEach(sp => { sp.style.animation = 'none'; });
         dropSpines(heroSpines, 250, 60);
         animate('.hero-preview .preview-window', { opacity: [0, 1], y: [30, 0] }, { duration: 0.8, ease, delay: 0.5 });
+    }
+
+    // Lo scaffale dell'hero sale più lento della pagina mentre si scorre
+    const hero = document.querySelector('.hero');
+    if (hero && M.scroll) {
+        M.scroll(animate('.hero-shelf', { y: [0, -50] }, { ease: 'linear' }), { target: hero, offset: ['start start', 'end start'] });
     }
 
     // Elementi della landing che compaiono quando entrano nello schermo

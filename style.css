@@ -236,8 +236,32 @@ h1, h2, .book-card-title { text-wrap: balance; }
     white-space: nowrap;
 }
 
-.nav-links a:hover  { color: var(--t1); background: var(--raised); }
-.nav-links a.active { color: var(--t1); background: var(--raised); box-shadow: inset 0 0 0 1px var(--line); }
+.nav-links { position: relative; }
+.nav-links a { position: relative; }
+.nav-links a:hover  { color: var(--t1); }
+.nav-links a.active { color: var(--t1); }
+.nav-label { position: relative; z-index: 1; }
+.nav-pill {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r-sm);
+    background: var(--raised);
+    box-shadow: inset 0 0 0 1px var(--line);
+}
+/* Pillola che segue il mouse tra le voci (aggiunta da ui.js) */
+.nav-hover {
+    position: absolute;
+    top: 0; left: 0;
+    height: 0;
+    border-radius: var(--r-sm);
+    background: color-mix(in srgb, var(--raised) 70%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+    transition: transform .38s cubic-bezier(.34, 1.3, .64, 1), width .38s cubic-bezier(.34, 1.3, .64, 1), opacity .2s var(--ease);
+}
+.nav-links li { position: relative; z-index: 1; }
+.nav-links.open .nav-hover { display: none; }
 
 .nav-links .nav-cta-item { margin-left: 8px; }
 
@@ -1358,6 +1382,11 @@ button:disabled { opacity: .65; cursor: default; }
 }
 
 [data-words] .w { display: inline-block; white-space: pre; }
+/* Prima dell'animazione titolo e scaffale restano nascosti (niente lampo);
+   se Motion non arriva, compaiono comunque dopo poco */
+.motion:not(.tl-seen) [data-words],
+.motion:not(.tl-seen) .hero-shelf .spine { opacity: 0; animation: showLate 0s 1.4s forwards; }
+@keyframes showLate { to { opacity: 1; } }
 
 /* Scaffale nell'hero, sopra l'anteprima della stanza */
 .hero-shelf {
@@ -2195,10 +2224,20 @@ html.theme-switching::view-transition-new(root) { animation: themeReveal .55s va
 @view-transition { navigation: auto; }
 
 .navbar { view-transition-name: navbar; }
+main { view-transition-name: page; }
+.nav-pill { view-transition-name: nav-pill; }
 .book-aside .cover-lg { view-transition-name: book-cover; }
 
+/* Il resto della pagina (sfondo, piè di pagina): dissolvenza rapida */
 ::view-transition-old(root) { animation: vtOut .12s linear both; }
-::view-transition-new(root) { animation: vtIn .2s var(--ease) both; }
+::view-transition-new(root) { animation: vtIn .18s var(--ease) both; }
+/* Il contenuto: quello vecchio sale e sfuma, il nuovo arriva da sotto */
+::view-transition-old(page) { animation: pageOut .16s cubic-bezier(.4, 0, 1, 1) both; }
+::view-transition-new(page) { animation: pageIn2 .34s cubic-bezier(.22, 1, .36, 1) .04s both; }
+/* La pillola della barra scivola sulla voce nuova, con una molla */
+::view-transition-group(nav-pill) { animation-duration: .45s; animation-timing-function: cubic-bezier(.34, 1.4, .64, 1); }
+@keyframes pageOut { to { opacity: 0; transform: translateY(-8px); } }
+@keyframes pageIn2 { from { opacity: 0; transform: translateY(14px); } }
 ::view-transition-group(book-cover) {
     animation-duration: .42s;
     animation-timing-function: cubic-bezier(.2, .9, .25, 1);
@@ -2207,12 +2246,18 @@ html.theme-switching::view-transition-new(root) { animation: themeReveal .55s va
 ::view-transition-old(book-cover),
 ::view-transition-new(book-cover) { height: 100%; object-fit: cover; }
 ::view-transition-group(navbar) { animation: none; }
+::view-transition-old(navbar) { display: none; }
+::view-transition-new(navbar) { animation: none; }
 
 @keyframes vtOut { to { opacity: 0; } }
 @keyframes vtIn  { from { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
     @view-transition { navigation: none; }
+}
+@media (max-width: 768px) {
+    .nav-links.open a.active .nav-pill { display: block; }
+    .nav-links.open a:hover { background: var(--raised); }
 }
 
 /* ===================================================================
@@ -2284,6 +2329,153 @@ html.theme-switching::view-transition-new(root) { animation: themeReveal .55s va
     transition: translate .45s cubic-bezier(.34, 1.56, .64, 1), background-color var(--t), border-color var(--t), color var(--t);
 }
 .is-magnet { transition: translate .12s linear, background-color var(--t), border-color var(--t), color var(--t); }
+
+
+/* ===================================================================
+   MOTION — effetti in stile motion.dev / kokonutui
+=================================================================== */
+
+/* Luce che segue il cursore sulle card */
+:is(.book-card, .group-room-card, .home-nav-card, .chart-card, .howto-steps li, .card, .home-book-list, .activity-list, .preview-window) {
+    position: relative;
+}
+:is(.book-card, .group-room-card, .home-nav-card, .chart-card, .howto-steps li, .card, .home-book-list, .activity-list, .preview-window)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+        radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent) 9%, transparent), transparent 45%);
+    opacity: 0;
+    transition: opacity .3s var(--ease);
+}
+/* bordo che si accende vicino al cursore */
+:is(.book-card, .group-room-card, .chart-card, .howto-steps li, .preview-window)::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent-ink) 55%, transparent), transparent 60%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    opacity: 0;
+    transition: opacity .3s var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+    :is(.book-card, .group-room-card, .home-nav-card, .chart-card, .howto-steps li, .card, .home-book-list, .activity-list, .preview-window):hover::after,
+    :is(.book-card, .group-room-card, .chart-card, .howto-steps li, .preview-window):hover::before { opacity: 1; }
+}
+.book-card-main, .book-card-footer, .group-room-card > *, .home-nav-card > * { position: relative; z-index: 1; }
+
+/* Scheletri di caricamento con riflesso */
+.skeleton { display: grid; gap: 16px; }
+.skeleton-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.skel {
+    border-radius: var(--r);
+    background:
+        linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--surface) 70%, transparent) 50%, transparent 80%) var(--raised);
+    background-size: 220% 100%;
+    animation: shimmer 1.3s linear infinite;
+}
+.skel-card { height: 168px; }
+.skel-row  { height: 64px; border-radius: var(--r-sm); }
+.skel-shelf { height: 250px; border-radius: var(--r-lg); }
+.skel-head { height: 44px; width: min(360px, 70%); border-radius: var(--r-sm); }
+@keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+/* Menu, pannelli e dialoghi che si aprono a molla */
+@keyframes popIn {
+    0%   { opacity: 0; transform: translateY(-6px) scale(.95); }
+    60%  { opacity: 1; transform: translateY(0) scale(1.01); }
+    100% { opacity: 1; transform: none; }
+}
+.profile-dropdown.open { animation: popIn .32s cubic-bezier(.22, 1, .36, 1); transform-origin: top right; }
+.notif-panel.open      { animation: popIn .32s cubic-bezier(.22, 1, .36, 1); transform-origin: top right; }
+.confirm-box           { animation: popIn .3s cubic-bezier(.22, 1, .36, 1); }
+.toast { transform: translateY(14px) scale(.94); transition: opacity .22s var(--ease), transform .45s cubic-bezier(.34, 1.56, .64, 1); }
+.toast-show { transform: none; }
+
+/* Riflesso che attraversa i pulsanti principali */
+.btn-primary, .btn-hero-primary, .nav-links a.nav-cta, .btn-nav-cta { position: relative; overflow: hidden; isolation: isolate; }
+.btn-primary::after, .btn-hero-primary::after, .nav-links a.nav-cta::after, .btn-nav-cta::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: -60%;
+    width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .28), transparent);
+    transform: skewX(-18deg) translateX(0);
+    pointer-events: none;
+    z-index: -1;
+}
+@media (hover: hover) {
+    .btn-primary:hover::after, .btn-hero-primary:hover::after, .nav-links a.nav-cta:hover::after, .btn-nav-cta:hover::after {
+        transform: skewX(-18deg) translateX(420%);
+        transition: transform .8s cubic-bezier(.22, 1, .36, 1);
+    }
+}
+
+/* Schede Accedi / Registrati: l'indicatore scivola */
+.auth-tabs { position: relative; }
+.auth-tabs::before {
+    content: '';
+    position: absolute;
+    top: 4px; bottom: 4px; left: 4px;
+    width: calc(50% - 6px);
+    border-radius: 7px;
+    background: var(--surface);
+    box-shadow: var(--sh-sm), inset 0 0 0 1px var(--line);
+    transition: transform .42s cubic-bezier(.34, 1.4, .64, 1);
+}
+.auth-tabs:has(.auth-tab-btn:last-child.active)::before { transform: translateX(calc(100% + 4px)); }
+.auth-tab-btn { position: relative; z-index: 1; }
+.auth-tab-btn.active { background: transparent; box-shadow: none; }
+
+/* Interruttore del tema: l'icona ruota */
+.theme-btn .icon { transition: transform .5s cubic-bezier(.34, 1.56, .64, 1); }
+.theme-btn:hover .icon { transform: rotate(-20deg) scale(1.08); }
+.theme-btn:active .icon { transform: rotate(-90deg) scale(.9); }
+
+/* Badge delle notifiche: piccolo "pop" quando compare */
+.notif-badge:not([hidden]) { animation: badgePop .5s cubic-bezier(.34, 1.8, .64, 1); }
+@keyframes badgePop { from { transform: scale(0); } }
+
+/* Pagina già vista: i libri dello scaffale salvato fanno una piccola onda */
+[data-restored] .spine { animation: spineWave .5s cubic-bezier(.34, 1.5, .64, 1) backwards; }
+@keyframes spineWave { from { translate: 0 14px; opacity: .2; } }
+[data-restored] .spine:nth-child(2) { animation-delay: 18ms; }
+[data-restored] .spine:nth-child(3) { animation-delay: 36ms; }
+[data-restored] .spine:nth-child(4) { animation-delay: 54ms; }
+[data-restored] .spine:nth-child(5) { animation-delay: 72ms; }
+[data-restored] .spine:nth-child(6) { animation-delay: 90ms; }
+[data-restored] .spine:nth-child(7) { animation-delay: 108ms; }
+[data-restored] .spine:nth-child(8) { animation-delay: 126ms; }
+[data-restored] .spine:nth-child(9) { animation-delay: 144ms; }
+[data-restored] .spine:nth-child(10) { animation-delay: 162ms; }
+[data-restored] .spine:nth-child(11) { animation-delay: 180ms; }
+[data-restored] .spine:nth-child(12) { animation-delay: 198ms; }
+[data-restored] .spine:nth-child(13) { animation-delay: 216ms; }
+[data-restored] .spine:nth-child(14) { animation-delay: 234ms; }
+[data-restored] .spine:nth-child(15) { animation-delay: 252ms; }
+[data-restored] .spine:nth-child(16) { animation-delay: 270ms; }
+[data-restored] .spine:nth-child(17) { animation-delay: 288ms; }
+[data-restored] .spine:nth-child(18) { animation-delay: 306ms; }
+[data-restored] .spine:nth-child(19) { animation-delay: 324ms; }
+[data-restored] .spine:nth-child(20) { animation-delay: 342ms; }
+[data-restored] .spine:nth-child(21) { animation-delay: 360ms; }
+[data-restored] .spine:nth-child(22) { animation-delay: 378ms; }
+[data-restored] .spine:nth-child(23) { animation-delay: 396ms; }
+[data-restored] .spine:nth-child(24) { animation-delay: 414ms; }
+[data-restored] .spine:nth-child(25) { animation-delay: 432ms; }
+[data-restored] .spine:nth-child(26) { animation-delay: 450ms; }
+[data-restored] .spine:nth-child(27) { animation-delay: 468ms; }
+[data-restored] .spine:nth-child(28) { animation-delay: 486ms; }
+[data-restored] .spine:nth-child(29) { animation-delay: 504ms; }
+[data-restored] .spine:nth-child(30) { animation-delay: 522ms; }
 
 /* === KEYFRAMES === */
 @keyframes spin     { to { transform: rotate(360deg); } }

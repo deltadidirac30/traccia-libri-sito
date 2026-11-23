@@ -63,7 +63,7 @@ function saveSnapshots() {
     if (!key) return;
     const out = {};
     document.querySelectorAll('[data-snapshot]').forEach(el => {
-        if (!el.id || el.querySelector('.loading-text, .confirm-overlay')) return;
+        if (!el.id || el.querySelector('.loading-text, .skeleton, .confirm-overlay')) return;
         const clone = el.cloneNode(true);
         clone.querySelectorAll('[style*="view-transition-name"]').forEach(n => { n.style.viewTransitionName = ''; });
         clone.querySelectorAll('.is-holding').forEach(n => n.classList.remove('is-holding'));
@@ -75,8 +75,12 @@ window.addEventListener('pagehide', saveSnapshots);
 // (il ripristino lo fa uno script in fondo a ogni pagina, prima del primo disegno)
 
 // "Caricamento…" solo se non c'è già una copia della pagina
-function showLoading(el) {
-    if (el && !el.dataset.restored) el.innerHTML = '<p class="loading-text">Caricamento…</p>';
+function skeletonHtml(kind = 'cards', n = 6) {
+    const item = { cards: 'skel skel-card', rows: 'skel skel-row', shelf: 'skel skel-shelf' }[kind] ?? 'skel skel-card';
+    return `<div class="skeleton ${kind === 'cards' ? 'skeleton-grid' : ''}" aria-label="Caricamento" role="status">${'<div class="' + item + '"></div>'.repeat(n)}</div>`;
+}
+function showLoading(el, kind = 'cards', n = 6) {
+    if (el && !el.dataset.restored) el.innerHTML = skeletonHtml(kind, n);
 }
 
 // Profilo dell'utente: dalla memoria di sessione se c'è, aggiornato in background
@@ -238,9 +242,11 @@ function renderShelf(container, books, { title = '', note = '' } = {}) {
     if (!container) return;
     if (!books?.length) { container.innerHTML = ''; container.hidden = true; return; }
     container.hidden = false;
-    container.innerHTML = `
+    const sig = books.map(b => b.id + ':' + (b.title ?? '') + ':' + (b.pages ?? '')).join('|');
+    const same = container.querySelector('.shelf')?.dataset.sig === sig;
+    if (!same) container.innerHTML = `
         ${title ? `<div class="section-head"><h2 class="section-title">${sanitize(title)} <span class="section-count">${books.length}</span></h2>${note}</div>` : ''}
-        <div class="shelf">
+        <div class="shelf" data-sig="${sanitize(sig)}">
             <div class="shelf-row">${books.map(spineHtml).join('')}<span class="bookend" aria-hidden="true"></span></div>
             <div class="shelf-plank" aria-hidden="true"></div>
         </div>

@@ -10,6 +10,7 @@
         var t = localStorage.getItem('tl-theme');
         if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = t;
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
         // pagina già vista in questa sessione: niente animazioni d'ingresso
         if (sessionStorage.getItem('tl:seen:' + location.pathname.split('/').pop())) document.documentElement.classList.add('tl-seen');
       } catch (e) { document.documentElement.dataset.theme = 'light'; }

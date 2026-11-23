@@ -10,6 +10,7 @@
         var t = localStorage.getItem('tl-theme');
         if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = t;
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
         // pagina già vista in questa sessione: niente animazioni d'ingresso
         if (sessionStorage.getItem('tl:seen:' + location.pathname.split('/').pop())) document.documentElement.classList.add('tl-seen');
       } catch (e) { document.documentElement.dataset.theme = 'light'; }
@@ -42,7 +43,7 @@
     <div class="navbar-inner">
       <a href="home.html" class="nav-brand">Traccia Libri</a>
       <ul class="nav-links" id="nav-links">
-        <li><a href="home.html" class="active" aria-current="page">Home</a></li>
+        <li><a href="home.html" class="active" aria-current="page"><span class="nav-pill" aria-hidden="true"></span><span class="nav-label">Home</span></a></li>
         <li><a href="libri.html">Tutti i libri</a></li>
         <li><a href="miei_libri.html">I miei libri</a></li>
         <li><a href="gruppi.html">Gruppi</a></li>
@@ -78,7 +79,7 @@
           <a href="libri.html" class="section-link">Vedi tutti</a>
         </div>
         <div id="recent-books" data-snapshot class="home-book-list">
-          <p class="loading-text">Caricamento…</p>
+          <div class="skeleton" role="status" aria-label="Caricamento"><div class="skel skel-row"></div><div class="skel skel-row"></div><div class="skel skel-row"></div></div>
         </div>
       </section>
 

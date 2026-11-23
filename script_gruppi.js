@@ -6,7 +6,7 @@ let currentUser = null;
 // --- Carica e mostra i gruppi dell'utente ---
 async function loadGroups() {
     const groupsList = document.getElementById('groups-list');
-    showLoading(groupsList);
+    showLoading(groupsList, 'rows', 3);
 
     const { data: memberships, error } = await db
         .from('group_members')

@@ -10,6 +10,7 @@
         var t = localStorage.getItem('tl-theme');
         if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = t;
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
         // pagina già vista in questa sessione: niente animazioni d'ingresso
         if (sessionStorage.getItem('tl:seen:' + location.pathname.split('/').pop())) document.documentElement.classList.add('tl-seen');
       } catch (e) { document.documentElement.dataset.theme = 'light'; }
@@ -45,7 +46,7 @@
         <li><a href="home.html">Home</a></li>
         <li><a href="libri.html">Tutti i libri</a></li>
         <li><a href="miei_libri.html">I miei libri</a></li>
-        <li><a href="gruppi.html" class="active" aria-current="page">Gruppi</a></li>
+        <li><a href="gruppi.html" class="active" aria-current="page"><span class="nav-pill" aria-hidden="true"></span><span class="nav-label">Gruppi</span></a></li>
         <li class="nav-cta-item"><a href="aggiungi_libro.html" class="nav-cta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Aggiungi libro</a></li>
         <li id="nav-profile-slot"></li>
       </ul>
