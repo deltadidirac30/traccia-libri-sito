@@ -10,15 +10,16 @@
         var t = localStorage.getItem('tl-theme');
         if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = t;
+        // pagina già vista in questa sessione: niente animazioni d'ingresso
+        if (sessionStorage.getItem('tl:seen:' + location.pathname.split('/').pop())) document.documentElement.classList.add('tl-seen');
       } catch (e) { document.documentElement.dataset.theme = 'light'; }
     })();
   </script>
   <meta name="color-scheme" content="light dark">
   <title>Stanza Gruppo — Traccia Libri Lettura</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://hhltbnrbjvxoisaizirj.supabase.co wss://hhltbnrbjvxoisaizirj.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <link rel="preload" href="fonts/instrument-sans-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/newsreader-var.woff2" as="font" type="font/woff2" crossorigin>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://hhltbnrbjvxoisaizirj.supabase.co wss://hhltbnrbjvxoisaizirj.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#f8f6f2">
@@ -29,8 +30,8 @@
   <meta name="apple-mobile-web-app-title" content="Traccia Libri">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="style.css" />
-  <script src="vendor/supabase.js"></script>
-  <script src="supabaseClient.js"></script>
+  <script src="vendor/supabase.js" defer></script>
+  <script src="supabaseClient.js" defer></script>
   <script src="vendor/motion.js" defer></script>
   <script src="ui.js" defer></script>
   <script src="pwa.js" defer></script>
@@ -61,12 +62,12 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
       I miei gruppi
     </a>
-    <div id="group-header">
+    <div id="group-header" data-snapshot>
       <p class="loading-text">Caricamento…</p>
     </div>
-    <section class="shelf-section" id="room-shelf" hidden></section>
-    <div id="books-container" class="room-books"></div>
-    <div id="members-container" class="room-members"></div>
+    <section class="shelf-section" id="room-shelf" data-snapshot hidden></section>
+    <div id="books-container" data-snapshot class="room-books"></div>
+    <div id="members-container" data-snapshot class="room-members"></div>
   </main>
 
   <footer>
@@ -79,6 +80,31 @@
       document.getElementById('nav-toggle').setAttribute('aria-expanded', open);
     });
   </script>
-  <script src="script_stanza_gruppo.js"></script>
+  <script src="script_stanza_gruppo.js" defer></script>
+  <script>
+    // Navigazione veloce: mostra subito la copia salvata di questa pagina (se c'è)
+    (function () {
+      try {
+        var uid = JSON.parse(sessionStorage.getItem('tl:uid'));
+        var snap = uid && JSON.parse(sessionStorage.getItem('tl:snap:' + uid + ':' + location.pathname.split('/').pop() + location.search));
+        if (!snap) return;
+        document.querySelectorAll('[data-snapshot]').forEach(function (el) {
+          if (!snap[el.id]) return;
+          el.innerHTML = snap[el.id]; el.hidden = false; el.setAttribute('data-restored', '1');
+        });
+      } catch (e) {}
+    })();
+  </script>
+  <script type="speculationrules">
+    {
+      "prerender": [{
+        "where": { "and": [
+          { "href_matches": "/*" },
+          { "not": { "selector_matches": "[href^='login'], [href^='index'], [href^='reset_password'], [data-no-prerender]" } }
+        ]},
+        "eagerness": "moderate"
+      }]
+    }
+  </script>
 </body>
 </html>

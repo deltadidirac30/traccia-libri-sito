@@ -10,15 +10,16 @@
         var t = localStorage.getItem('tl-theme');
         if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = t;
+        // pagina già vista in questa sessione: niente animazioni d'ingresso
+        if (sessionStorage.getItem('tl:seen:' + location.pathname.split('/').pop())) document.documentElement.classList.add('tl-seen');
       } catch (e) { document.documentElement.dataset.theme = 'light'; }
     })();
   </script>
   <meta name="color-scheme" content="light dark">
   <title>Home — Traccia Libri Lettura</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://hhltbnrbjvxoisaizirj.supabase.co wss://hhltbnrbjvxoisaizirj.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <link rel="preload" href="fonts/instrument-sans-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/newsreader-var.woff2" as="font" type="font/woff2" crossorigin>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://hhltbnrbjvxoisaizirj.supabase.co wss://hhltbnrbjvxoisaizirj.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#f8f6f2">
@@ -29,8 +30,8 @@
   <meta name="apple-mobile-web-app-title" content="Traccia Libri">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="style.css" />
-  <script src="vendor/supabase.js"></script>
-  <script src="supabaseClient.js"></script>
+  <script src="vendor/supabase.js" defer></script>
+  <script src="supabaseClient.js" defer></script>
   <script src="vendor/motion.js" defer></script>
   <script src="ui.js" defer></script>
   <script src="pwa.js" defer></script>
@@ -59,7 +60,7 @@
   <main class="page-content">
     <div class="home-header">
       <div>
-        <h1 id="welcome-heading">La tua libreria</h1>
+        <h1 id="welcome-heading" data-snapshot>La tua libreria</h1>
         <p id="welcome-message" class="home-header-sub">Tieni traccia di ogni libro che leggi con il tuo gruppo.</p>
       </div>
       <a href="aggiungi_libro.html" class="btn-primary btn">
@@ -68,7 +69,7 @@
       </a>
     </div>
 
-    <section class="shelf-section" id="home-shelf" hidden></section>
+    <section class="shelf-section" id="home-shelf" data-snapshot hidden></section>
 
     <div class="home-layout">
       <section class="home-recent" aria-labelledby="recent-title">
@@ -76,7 +77,7 @@
           <h2 class="section-title" id="recent-title">Aggiunti di recente</h2>
           <a href="libri.html" class="section-link">Vedi tutti</a>
         </div>
-        <div id="recent-books" class="home-book-list">
+        <div id="recent-books" data-snapshot class="home-book-list">
           <p class="loading-text">Caricamento…</p>
         </div>
       </section>
@@ -124,17 +125,14 @@
       document.getElementById('nav-toggle').setAttribute('aria-expanded', open);
     });
 
-    (async () => {
-      const { data: { session } } = await db.auth.getSession();
-      if (!session) { window.location.href = 'login.html'; return; }
+    // Gli script sono in defer: si parte quando sono pronti
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await requireAuth();
+      if (!user) return;
+      const session = { user };
 
-      await initNavbar();
-
-      const { data: profile } = await db
-        .from('profiles')
-        .select('nickname')
-        .eq('id', session.user.id)
-        .single();
+      initNavbar();
+      const profile = await getMyProfile(user.id);
 
       const nickname = profile?.nickname ?? session.user.email;
       document.getElementById('welcome-heading').textContent = 'Ciao, ' + nickname;
@@ -147,6 +145,7 @@
         .eq('visibility', 'group')
         .order('created_at', { ascending: false })
         .limit(30);
+      // (la copia salvata è già sullo schermo: qui arrivano i dati freschi)
 
       if (!books || books.length === 0) {
         recentEl.innerHTML = `
@@ -178,7 +177,32 @@
             </span>
           </a>`;
       }).join('');
+    });
+  </script>
+  <script>
+    // Navigazione veloce: mostra subito la copia salvata di questa pagina (se c'è)
+    (function () {
+      try {
+        var uid = JSON.parse(sessionStorage.getItem('tl:uid'));
+        var snap = uid && JSON.parse(sessionStorage.getItem('tl:snap:' + uid + ':' + location.pathname.split('/').pop() + location.search));
+        if (!snap) return;
+        document.querySelectorAll('[data-snapshot]').forEach(function (el) {
+          if (!snap[el.id]) return;
+          el.innerHTML = snap[el.id]; el.hidden = false; el.setAttribute('data-restored', '1');
+        });
+      } catch (e) {}
     })();
+  </script>
+  <script type="speculationrules">
+    {
+      "prerender": [{
+        "where": { "and": [
+          { "href_matches": "/*" },
+          { "not": { "selector_matches": "[href^='login'], [href^='index'], [href^='reset_password'], [data-no-prerender]" } }
+        ]},
+        "eagerness": "moderate"
+      }]
+    }
   </script>
 </body>
 </html>

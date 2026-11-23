@@ -55,7 +55,7 @@ No algorithms. No ads. Just your books and your people.
 | Layer | Technology |
 |---|---|
 | Frontend | Vanilla HTML, CSS, JavaScript (no framework) |
-| Type & motion | Newsreader, Instrument Sans, IBM Plex Mono (Google Fonts) · [Motion](https://motion.dev) via CDN |
+| Type & motion | Newsreader, Instrument Sans, IBM Plex Mono (self-hosted in `fonts/`, OFL) · [Motion](https://motion.dev) (self-hosted in `vendor/`) |
 | Backend / Database | [Supabase](https://supabase.com) (PostgreSQL + Row Level Security) |
 | Auth | Supabase Auth (email + password) |
 | Hosting | GitHub Pages |
@@ -125,6 +125,8 @@ traccia_libri_sito/
 ├── manifest.webmanifest    # App name, icons, colours
 ├── icons/                  # App icons
 ├── vendor/                 # supabase-js and Motion, served by the site itself (see vendor/README.md)
+├── fonts/                  # Web fonts (OFL licences included)
+├── charts.js               # Reading calendar and pages-per-month charts (Attività)
 ├── supabase/
 │   ├── migrations/006_notifications.sql
 │   └── functions/send-push/index.ts

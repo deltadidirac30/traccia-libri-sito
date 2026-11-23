@@ -13,8 +13,7 @@ window.handleEditVisibilityChange = handleEditVisibilityChange;
 // --- Carica i libri dell'utente ---
 async function loadMyBooks() {
     const booksList = document.getElementById('books-list');
-    booksList.innerHTML =
-        '<p class="loading-text">Caricamento…</p>';
+    showLoading(booksList);
 
     const { data: books, error } = await db
         .from('books')
@@ -179,7 +178,7 @@ document.getElementById('cancel-edit-button').addEventListener('click', () => {
 (async () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
-    await initNavbar();
+    initNavbar();   // in parallelo con i dati della pagina
 
     // Carica i gruppi dell'utente per il selettore visibilità
     const { data: memberships } = await db

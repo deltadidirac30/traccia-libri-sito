@@ -129,7 +129,7 @@ document.getElementById('delete-account-btn').addEventListener('click', () => {
 (async () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
-    await initNavbar();
+    initNavbar();   // in parallelo con i dati della pagina
 
     // Precompila email attuale
     document.getElementById('current-email').value = currentUser.email;

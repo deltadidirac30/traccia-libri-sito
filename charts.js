@@ -253,7 +253,8 @@ function renderReadingStats(el, books) {
     bars.addEventListener('pointerleave', () => { hideTip(); bars.querySelectorAll('.bar-hit').forEach(x => x.classList.remove('active')); });
 
     // Le colonne crescono dal basso quando entrano nello schermo
-    if (window.Motion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (window.Motion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        && !document.documentElement.classList.contains('tl-seen')) {
         const barEls = [...el.querySelectorAll('.bar')];
         barEls.forEach(b => { b.style.transformOrigin = 'center bottom'; b.style.transformBox = 'fill-box'; b.style.transform = 'scaleY(0)'; });
         window.Motion.inView(bars, () => {

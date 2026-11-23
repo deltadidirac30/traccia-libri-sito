@@ -35,6 +35,19 @@ document.addEventListener('click', (e) => {
 });
 if (document.documentElement.dataset.theme) applyTheme(document.documentElement.dataset.theme);
 
+// --- Navigazione ---
+// Pagina vista: alla prossima visita in questa sessione niente animazioni d'ingresso
+window.addEventListener('pagehide', () => {
+    try { sessionStorage.setItem('tl:seen:' + location.pathname.split('/').pop(), '1'); } catch (_) {}
+});
+// La transizione animata tra pagine serve solo quando si apre un libro
+// (la copertina vola): per tutto il resto il cambio pagina è immediato.
+window.addEventListener('pageswap', (e) => {
+    if (!e.viewTransition) return;
+    const url = e.activation?.entry?.url || '';
+    if (!/scheda\.html\?id=/.test(url)) e.viewTransition.skipTransition();
+});
+
 // --- Service worker: rende il sito installabile ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

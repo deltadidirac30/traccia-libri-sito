@@ -5,6 +5,8 @@
 // =====================================================================
 (function () {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Pagina già vista in questa sessione: i contenuti compaiono subito
+    const seenPage = document.documentElement.classList.contains('tl-seen');
     const fine   = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     const springOut = 'cubic-bezier(.34, 1.56, .64, 1)';
 
@@ -195,6 +197,7 @@
     let scheduled = false;
     function flush() {
         scheduled = false;
+        if (seenPage) { queue = []; return; }
         const els = queue.filter(el => el.isConnected);
         queue = [];
         if (!els.length) return;
@@ -218,6 +221,7 @@
 
     // Numeri che contano fino al valore (Attività, statistiche)
     function countUp(el) {
+        if (seenPage) return;
         const target = parseInt(el.textContent.replace(/\D/g, ''), 10);
         if (!Number.isFinite(target) || target <= 0 || el.dataset.counted) return;
         el.dataset.counted = '1';
@@ -237,7 +241,7 @@
     }).observe(document.body, { childList: true, characterData: true, subtree: true });
 
     // Titolo che entra parola per parola
-    document.querySelectorAll('[data-words]').forEach(h => {
+    if (!seenPage) document.querySelectorAll('[data-words]').forEach(h => {
         const words = h.textContent.trim().split(/\s+/);
         h.innerHTML = words.map(w => `<span class="w">${w.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))} </span>`).join('');
         h.setAttribute('aria-label', words.join(' '));
@@ -247,12 +251,13 @@
 
     // Lo scaffale dell'hero si riempie: i libri cadono uno dopo l'altro
     const heroSpines = [...document.querySelectorAll('.hero-shelf .spine')];
-    if (heroSpines.length) {
+    if (heroSpines.length && !seenPage) {
         dropSpines(heroSpines, 250, 60);
         animate('.hero-preview .preview-window', { opacity: [0, 1], y: [30, 0] }, { duration: 0.8, ease, delay: 0.5 });
     }
 
     // Elementi della landing che compaiono quando entrano nello schermo
+    if (seenPage) return;
     document.querySelectorAll('[data-reveal]').forEach(el => { el.style.opacity = '0'; });
     inView('[data-reveal]', (el) => {
         animate(el, { opacity: [0, 1], y: [24, 0] }, { duration: 0.7, ease, delay: (parseFloat(el.dataset.reveal) || 0) });

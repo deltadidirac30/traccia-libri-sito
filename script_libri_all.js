@@ -5,8 +5,7 @@ let currentUser = null;
 // --- Carica i libri condivisi nei gruppi dell'utente ---
 async function loadGroupBooks() {
     const booksList = document.getElementById('books-list');
-    booksList.innerHTML =
-        '<p class="loading-text">Caricamento…</p>';
+    showLoading(booksList);
 
     // La RLS filtra automaticamente: l'utente vede solo i libri dei suoi gruppi
     const { data: books, error } = await db
@@ -193,6 +192,6 @@ document.getElementById('cancel-edit-button').addEventListener('click', () => {
 (async () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
-    await initNavbar();
+    initNavbar();   // in parallelo con i dati della pagina
     await loadGroupBooks();
 })();

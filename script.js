@@ -17,7 +17,7 @@ let userGroups   = [];
         .single();
     userNickname = profile?.nickname ?? currentUser.email;
 
-    await initNavbar();
+    initNavbar();   // in parallelo con i dati della pagina
     // Popola il dropdown dei gruppi
     await caricaGruppi();
 })();

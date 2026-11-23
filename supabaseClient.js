@@ -21,10 +21,71 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
 async function requireAuth() {
     const { data: { session } } = await db.auth.getSession();
     if (!session) {
+        clearSessionCache();
         window.location.href = 'login.html';
         return null;
     }
+    // se nella scheda ha fatto accesso un altro utente, le copie salvate non valgono più
+    if (ssGet('tl:uid') !== session.user.id) { clearSessionCache(); ssSet('tl:uid', session.user.id); }
     return session.user;
+}
+
+// -----------------------------------------------------------------------
+// Navigazione veloce
+// Ogni pagina con elementi [data-snapshot] salva una copia del contenuto
+// quando la lasci e la mostra subito al ritorno; i dati freschi arrivano
+// subito dopo e la sostituiscono. Tutto resta nella sessione di questa scheda
+// del browser e viene cancellato all'uscita o al cambio di utente.
+// -----------------------------------------------------------------------
+function ssGet(k) { try { return JSON.parse(sessionStorage.getItem(k)); } catch (_) { return null; } }
+function ssSet(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (_) { /* spazio pieno: pazienza */ } }
+function clearSessionCache() {
+    try { Object.keys(sessionStorage).filter(k => k.startsWith('tl:') && k !== 'tl:book').forEach(k => sessionStorage.removeItem(k)); } catch (_) {}
+}
+function snapKey() {
+    const uid = ssGet('tl:uid');
+    return uid ? `tl:snap:${uid}:${location.pathname.split('/').pop()}${location.search}` : null;
+}
+function restoreSnapshots() {
+    const key = snapKey();
+    const snap = key && ssGet(key);
+    if (!snap) return;
+    document.querySelectorAll('[data-snapshot]').forEach(el => {
+        const html = snap[el.id];
+        if (!html) return;
+        el.innerHTML = html;
+        el.hidden = false;
+        el.dataset.restored = '1';
+    });
+}
+function saveSnapshots() {
+    const key = snapKey();
+    if (!key) return;
+    const out = {};
+    document.querySelectorAll('[data-snapshot]').forEach(el => {
+        if (!el.id || el.querySelector('.loading-text, .confirm-overlay')) return;
+        const clone = el.cloneNode(true);
+        clone.querySelectorAll('[style*="view-transition-name"]').forEach(n => { n.style.viewTransitionName = ''; });
+        clone.querySelectorAll('.is-holding').forEach(n => n.classList.remove('is-holding'));
+        out[el.id] = el.hidden ? '' : clone.innerHTML;
+    });
+    ssSet(key, out);
+}
+window.addEventListener('pagehide', saveSnapshots);
+// (il ripristino lo fa uno script in fondo a ogni pagina, prima del primo disegno)
+
+// "Caricamento…" solo se non c'è già una copia della pagina
+function showLoading(el) {
+    if (el && !el.dataset.restored) el.innerHTML = '<p class="loading-text">Caricamento…</p>';
+}
+
+// Profilo dell'utente: dalla memoria di sessione se c'è, aggiornato in background
+async function getMyProfile(uid) {
+    const key = 'tl:profile:' + uid;
+    const cached = ssGet(key);
+    const fresh = db.from('profiles').select('nickname').eq('id', uid).single()
+        .then(({ data }) => { if (data) ssSet(key, data); return data; });
+    return cached ?? await fresh;
 }
 
 // -----------------------------------------------------------------------
@@ -277,12 +338,9 @@ async function initNavbar() {
 
     const { data: { session } } = await db.auth.getSession();
     if (!session) return;
+    if (inner.querySelector('.nav-actions')) return;
 
-    const { data: profile } = await db
-        .from('profiles')
-        .select('nickname')
-        .eq('id', session.user.id)
-        .single();
+    const profile = await getMyProfile(session.user.id);
 
     const initial = ((profile?.nickname ?? session.user.email ?? '?')[0]).toUpperCase();
 
@@ -349,6 +407,7 @@ async function initNavbar() {
     });
     document.querySelectorAll('[data-logout]').forEach(btn => btn.addEventListener('click', async () => {
         try { await window.TLPush?.disable(); } catch (_) { /* nessuna iscrizione */ }
+        clearSessionCache();
         await db.auth.signOut();
         window.location.href = 'login.html';
     }));

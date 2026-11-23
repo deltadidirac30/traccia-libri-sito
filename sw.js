@@ -5,7 +5,7 @@
 // Strategia: prima la rete, la cache solo se si è offline. Così un aggiornamento
 // pubblicato su GitHub Pages arriva subito e nessuno resta con una versione vecchia.
 // =====================================================================
-const VERSION = 'tl-v3';
+const VERSION = 'tl-v4';
 const SHELL = [
     './',
     './index.html',
@@ -17,6 +17,11 @@ const SHELL = [
     './pwa.js',
     './vendor/supabase.js',
     './vendor/motion.js',
+    './fonts/instrument-sans-var.woff2',
+    './fonts/newsreader-var.woff2',
+    './fonts/newsreader-italic.woff2',
+    './fonts/ibm-plex-mono-400.woff2',
+    './fonts/ibm-plex-mono-500.woff2',
     './icons/icon-192.png',
 ];
 
@@ -41,6 +46,19 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(req.url);
     // Solo i file del sito: Supabase, font e CDN passano senza toccarli
     if (url.origin !== self.location.origin) return;
+
+    // Librerie, font e icone cambiano solo con una nuova versione (VERSION):
+    // si prendono subito dalla cache, senza aspettare la rete
+    if (/\/(vendor|fonts|icons)\//.test(url.pathname)) {
+        event.respondWith((async () => {
+            const cached = await caches.match(req);
+            if (cached) return cached;
+            const fresh = await fetch(req);
+            if (fresh.ok) (await caches.open(VERSION)).put(req, fresh.clone());
+            return fresh;
+        })());
+        return;
+    }
 
     event.respondWith((async () => {
         try {

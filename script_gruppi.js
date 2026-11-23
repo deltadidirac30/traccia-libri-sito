@@ -6,8 +6,7 @@ let currentUser = null;
 // --- Carica e mostra i gruppi dell'utente ---
 async function loadGroups() {
     const groupsList = document.getElementById('groups-list');
-    groupsList.innerHTML =
-        '<p class="loading-text">Caricamento…</p>';
+    showLoading(groupsList);
 
     const { data: memberships, error } = await db
         .from('group_members')
@@ -153,6 +152,6 @@ document.getElementById('join-group-form').addEventListener('submit', async (e) 
 (async () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
-    await initNavbar();
+    initNavbar();   // in parallelo con i dati della pagina
     await loadGroups();
 })();

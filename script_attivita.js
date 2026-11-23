@@ -127,6 +127,6 @@ async function loadActivity() {
 (async () => {
     currentUser = await requireAuth();
     if (!currentUser) return;
-    await initNavbar();
+    initNavbar();   // in parallelo con i dati della pagina
     await loadActivity();
 })();

@@ -107,6 +107,33 @@
     color-scheme: dark;
 }
 
+/* === FONT (serviti dal sito, licenza OFL: vedi fonts/) === */
+@font-face {
+    font-family: 'Instrument Sans';
+    src: url(fonts/instrument-sans-var.woff2) format('woff2');
+    font-weight: 400 700; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'Newsreader';
+    src: url(fonts/newsreader-var.woff2) format('woff2');
+    font-weight: 200 800; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'Newsreader';
+    src: url(fonts/newsreader-italic.woff2) format('woff2');
+    font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+    font-family: 'IBM Plex Mono';
+    src: url(fonts/ibm-plex-mono-400.woff2) format('woff2');
+    font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'IBM Plex Mono';
+    src: url(fonts/ibm-plex-mono-500.woff2) format('woff2');
+    font-weight: 500; font-style: normal; font-display: swap;
+}
+
 /* === RESET === */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -152,8 +179,8 @@ h1, h2, .book-card-title { text-wrap: balance; }
 /* === NAVBAR === */
 .navbar {
     background: var(--nav-bg);
-    backdrop-filter: saturate(160%) blur(16px);
-    -webkit-backdrop-filter: saturate(160%) blur(16px);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
     border-bottom: 1px solid var(--line);
     position: sticky;
     top: 0;
@@ -1123,8 +1150,8 @@ button:disabled { opacity: .65; cursor: default; }
     top: 0;
     z-index: 200;
     background: var(--nav-bg);
-    backdrop-filter: saturate(160%) blur(16px);
-    -webkit-backdrop-filter: saturate(160%) blur(16px);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
     border-bottom: 1px solid transparent;
 }
 
@@ -2170,10 +2197,10 @@ html.theme-switching::view-transition-new(root) { animation: themeReveal .55s va
 .navbar { view-transition-name: navbar; }
 .book-aside .cover-lg { view-transition-name: book-cover; }
 
-::view-transition-old(root) { animation: vtOut .18s var(--ease) both; }
-::view-transition-new(root) { animation: vtIn .32s var(--ease) both; }
+::view-transition-old(root) { animation: vtOut .12s linear both; }
+::view-transition-new(root) { animation: vtIn .2s var(--ease) both; }
 ::view-transition-group(book-cover) {
-    animation-duration: .55s;
+    animation-duration: .42s;
     animation-timing-function: cubic-bezier(.2, .9, .25, 1);
     z-index: 50;
 }
@@ -2182,7 +2209,7 @@ html.theme-switching::view-transition-new(root) { animation: themeReveal .55s va
 ::view-transition-group(navbar) { animation: none; }
 
 @keyframes vtOut { to { opacity: 0; } }
-@keyframes vtIn  { from { opacity: 0; transform: translateY(10px); } }
+@keyframes vtIn  { from { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
     @view-transition { navigation: none; }
@@ -2264,6 +2291,9 @@ html.theme-switching::view-transition-new(root) { animation: themeReveal .55s va
 @keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dialogIn { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes pageIn   { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Pagina già vista in questa sessione: compare subito, senza animazione d'ingresso */
+.tl-seen .page-content, .tl-seen .page-content-narrow, .tl-seen .hero-copy, .tl-seen .auth-card { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
