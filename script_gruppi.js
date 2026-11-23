@@ -7,7 +7,7 @@ let currentUser = null;
 async function loadGroups() {
     const groupsList = document.getElementById('groups-list');
     groupsList.innerHTML =
-        '<p style="color:var(--t3);font-size:15px;padding:8px 0;">Caricamento gruppi...</p>';
+        '<p class="loading-text">Caricamento…</p>';
 
     const { data: memberships, error } = await db
         .from('group_members')
@@ -21,8 +21,8 @@ async function loadGroups() {
 
     if (!memberships || memberships.length === 0) {
         groupsList.innerHTML = `
-            <div class="empty-state" style="grid-column:unset;padding:40px 0;">
-                <div style="font-size:3rem;margin-bottom:12px;">👥</div>
+            <div class="empty-state empty-state-compact">
+                <span class="empty-icon">${icon('users', 20)}</span>
                 <h3>Non sei ancora in nessun gruppo</h3>
                 <p>Crea un nuovo gruppo o unisciti a uno esistente con un codice invito.</p>
             </div>`;
@@ -37,29 +37,36 @@ async function loadGroups() {
 
         const card = document.createElement('div');
         card.className = 'group-room-card';
-        card.style.cursor = 'pointer';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'link');
         card.innerHTML = `
-            <div>
+            <span class="group-room-mark" aria-hidden="true">${sanitize(group.name.trim().charAt(0).toUpperCase())}</span>
+            <div class="group-room-card-body">
                 <div class="group-room-card-name">${sanitize(group.name)}</div>
-                <div class="group-room-card-meta">${isAdmin ? 'Amministratore' : 'Membro'}</div>
-                ${isAdmin ? `
-                <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-                    <code style="font-size:12px;color:var(--t2);letter-spacing:0.05em;">${sanitize(group.invite_code)}</code>
-                    <button class="btn-secondary copy-code-btn" data-code="${sanitize(group.invite_code)}"
-                            style="font-size:11px;padding:2px 8px;">Copia</button>
-                </div>` : ''}
+                <div class="group-room-card-meta">
+                    <span>${isAdmin ? 'Amministratore' : 'Membro'}</span>
+                    ${isAdmin ? `
+                    <span class="group-room-code">
+                        Codice <code>${sanitize(group.invite_code)}</code>
+                        <button class="btn-secondary btn-xs copy-code-btn" data-code="${sanitize(group.invite_code)}">Copia</button>
+                    </span>` : ''}
+                </div>
             </div>
-            <span class="group-room-arrow">&#8594;</span>`;
+            <span class="group-room-arrow">${icon('arrow')}</span>`;
 
         card.addEventListener('click', (e) => {
             if (e.target.closest('.copy-code-btn')) {
                 const code = e.target.closest('.copy-code-btn').dataset.code;
                 navigator.clipboard.writeText(code)
-                    .then(() => showToast('Codice copiato!', 'success'))
+                    .then(() => showToast('Codice copiato', 'success'))
                     .catch(() => showToast('Codice: ' + code, 'info'));
                 return;
             }
             window.location.href = `stanza_gruppo.html?id=${group.id}`;
+        });
+
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.target.closest('button')) window.location.href = `stanza_gruppo.html?id=${group.id}`;
         });
 
         groupsList.appendChild(card);
@@ -73,7 +80,7 @@ document.getElementById('create-group-form').addEventListener('submit', async (e
     const name      = nameInput.value.trim();
     const btn       = e.submitter;
 
-    if (!name) { showToast('Inserisci un nome per il gruppo.', 'error'); return; }
+    if (!name) { showToast('Inserisci un nome per il gruppo', 'error'); return; }
 
     btn.disabled  = true;
     btn.innerHTML = '<span class="spinner"></span> Creazione...';
@@ -98,7 +105,7 @@ document.getElementById('create-group-form').addEventListener('submit', async (e
         .insert({ group_id: group.id, user_id: currentUser.id, role: 'admin' });
 
     if (memberError) {
-        showToast('Gruppo creato ma errore nell\'iscrizione automatica.', 'error');
+        showToast('Gruppo creato ma errore nell\'iscrizione automatica', 'error');
     } else {
         showToast(`Gruppo "${name}" creato con successo!`, 'success');
         nameInput.value = '';
@@ -116,7 +123,7 @@ document.getElementById('join-group-form').addEventListener('submit', async (e) 
     const code      = codeInput.value.trim();
     const btn       = e.submitter;
 
-    if (!code) { showToast('Inserisci un codice invito.', 'error'); return; }
+    if (!code) { showToast('Inserisci un codice invito', 'error'); return; }
 
     btn.disabled  = true;
     btn.innerHTML = '<span class="spinner"></span> Iscrizione...';

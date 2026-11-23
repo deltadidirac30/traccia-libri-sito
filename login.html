@@ -4,17 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Accedi — Traccia Libri Lettura</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabaseClient.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js" defer></script>
+  <script src="ui.js" defer></script>
 </head>
 <body class="auth-page">
 
   <div class="auth-card">
     <div class="auth-card-header">
       <h1>Traccia Libri</h1>
-      <p>Il tuo spazio di lettura condiviso</p>
+      <p>Il diario di lettura del tuo gruppo</p>
     </div>
 
     <div class="auth-tabs">
@@ -36,11 +40,11 @@
     <!-- Recupera password -->
     <div id="forgot-wrapper" style="display:none;">
       <form id="forgot-form" class="auth-form active">
-        <p style="font-size:.9rem;color:var(--t2);margin-bottom:12px;">Ti invieremo un link per reimpostare la password.</p>
+        <p class="auth-hint">Ti mandiamo un link per scegliere una nuova password.</p>
         <label for="forgot-email">Email</label>
         <input type="email" id="forgot-email" placeholder="La tua email" required />
         <button type="submit" class="btn-primary btn-full" id="forgot-btn">Invia link</button>
-        <button type="button" class="btn-secondary btn-full" id="forgot-cancel-btn" style="margin-top:6px;">Annulla</button>
+        <button type="button" class="btn-secondary btn-full" id="forgot-cancel-btn">Annulla</button>
       </form>
     </div>
 

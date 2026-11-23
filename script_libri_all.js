@@ -6,7 +6,7 @@ let currentUser = null;
 async function loadGroupBooks() {
     const booksList = document.getElementById('books-list');
     booksList.innerHTML =
-        '<p style="color:var(--t3);padding:20px 0;font-size:15px;">Caricamento in corso...</p>';
+        '<p class="loading-text">Caricamento…</p>';
 
     // La RLS filtra automaticamente: l'utente vede solo i libri dei suoi gruppi
     const { data: books, error } = await db
@@ -22,10 +22,10 @@ async function loadGroupBooks() {
     if (!books || books.length === 0) {
         booksList.innerHTML = `
             <div class="empty-state">
-                <div style="font-size:3rem;margin-bottom:12px;">🔍</div>
+                <span class="empty-icon">${icon('users', 20)}</span>
                 <h3>Ancora nessun libro condiviso</h3>
-                <p>Unisciti a un gruppo di lettura e inizia a condividere i tuoi libri con gli amici!</p>
-                <a href="gruppi.html" class="btn-primary btn">Vai ai Gruppi</a>
+                <p>Unisciti a un gruppo di lettura per vedere i libri dei tuoi amici e condividere i tuoi.</p>
+                <a href="gruppi.html" class="btn-primary btn">Vai ai gruppi</a>
             </div>`;
         return;
     }
@@ -58,26 +58,31 @@ async function loadGroupBooks() {
                 <button class="delete-button" onclick="deleteBook('${book.id}')">Elimina</button>
             </div>` : '';
 
+        const period = readingPeriod(book.start_date, book.end_date);
         const card = document.createElement('div');
         card.className = 'book-card';
         card.innerHTML = `
-            <div class="book-card-title">${sanitize(book.title)}</div>
-            <div class="book-card-author">${sanitize(book.author)}</div>
-            <div class="book-card-meta">
-                Aggiunto da ${sanitize(book.added_by)}
-                ${book.end_date ? ' &middot; ' + sanitize(book.end_date) : ''}
-            </div>
+            <a href="scheda.html?id=${book.id}" class="book-card-main">
+                ${bookCover(book)}
+                <div class="book-card-text">
+                    <div class="book-card-title">${sanitize(book.title)}</div>
+                    <div class="book-card-author">${sanitize(book.author)}</div>
+                    <div class="book-card-meta">
+                        <span>${sanitize(book.added_by)}</span>
+                        ${period ? `<span class="period">${sanitize(period)}</span>` : ''}
+                    </div>
+                </div>
+            </a>
             <div class="book-card-footer">
-                <a href="scheda.html?id=${book.id}" class="link-view">Visualizza scheda</a>
+                <div class="social-bar">
+                    <button class="like-btn ${liked ? 'liked' : ''}" data-book-id="${book.id}" aria-pressed="${liked}">
+                        ${likeInner(liked, likeCount)}
+                    </button>
+                    <a href="scheda.html?id=${book.id}#commenti" class="comment-toggle-btn" aria-label="Commenti">
+                        ${icon('message')}<span>${commentCount}</span>
+                    </a>
+                </div>
                 ${actionsHtml}
-            </div>
-            <div class="social-bar">
-                <button class="like-btn ${liked ? 'liked' : ''}" data-book-id="${book.id}">
-                    ${liked ? '♥' : '♡'} <span class="like-num">${likeCount}</span>
-                </button>
-                <a href="scheda.html?id=${book.id}" class="comment-toggle-btn">
-                    💬 ${commentCount}
-                </a>
             </div>`;
         booksList.appendChild(card);
     }
@@ -96,17 +101,19 @@ document.getElementById('books-list').addEventListener('click', async (e) => {
         const { error } = await db.from('book_likes').delete().eq('book_id', bookId).eq('user_id', currentUser.id);
         if (!error) {
             likeBtn.classList.remove('liked');
-            likeBtn.innerHTML = `♡ <span class="like-num">${Math.max(0, parseInt(countEl.textContent) - 1)}</span>`;
+            likeBtn.setAttribute('aria-pressed', 'false');
+            likeBtn.innerHTML = likeInner(false, Math.max(0, parseInt(countEl.textContent) - 1));
         } else {
-            showToast('Errore durante la rimozione del like.', 'error');
+            showToast('Errore durante la rimozione del like', 'error');
         }
     } else {
         const { error } = await db.from('book_likes').insert({ book_id: bookId, user_id: currentUser.id });
         if (!error) {
             likeBtn.classList.add('liked');
-            likeBtn.innerHTML = `♥ <span class="like-num">${parseInt(countEl.textContent) + 1}</span>`;
+            likeBtn.setAttribute('aria-pressed', 'true');
+            likeBtn.innerHTML = likeInner(true, parseInt(countEl.textContent) + 1);
         } else {
-            showToast('Errore durante il like.', 'error');
+            showToast('Errore durante il like', 'error');
         }
     }
     likeBtn.disabled = false;
@@ -117,9 +124,9 @@ function deleteBook(bookId) {
     showConfirm('Sei sicuro di voler eliminare questo libro?', async () => {
         const { error } = await db.from('books').delete().eq('id', bookId);
         if (error) {
-            showToast('Errore durante l\'eliminazione.', 'error');
+            showToast('Errore durante l\'eliminazione', 'error');
         } else {
-            showToast('Libro eliminato con successo.', 'success');
+            showToast('Libro eliminato', 'success');
             loadGroupBooks();
         }
     });
@@ -134,7 +141,7 @@ async function editBook(bookId) {
     const { data: book, error } = await db
         .from('books').select('*').eq('id', bookId).single();
 
-    if (error || !book) { showToast('Libro non trovato.', 'error'); return; }
+    if (error || !book) { showToast('Libro non trovato', 'error'); return; }
 
     document.getElementById('edit-addedBy').value         = book.added_by          ?? '';
     document.getElementById('edit-title').value           = book.title              ?? '';
@@ -168,9 +175,9 @@ async function editBook(bookId) {
         }).eq('id', bookId);
 
         if (updateError) {
-            showToast('Errore durante l\'aggiornamento.', 'error');
+            showToast('Errore durante l\'aggiornamento', 'error');
         } else {
-            showToast('Scheda aggiornata!', 'success');
+            showToast('Scheda aggiornata', 'success');
             editSection.style.display = 'none';
             loadGroupBooks();
         }

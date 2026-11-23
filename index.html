@@ -3,58 +3,121 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Traccia Libri Lettura</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Traccia Libri — il diario di lettura del tuo gruppo</title>
+  <meta name="description" content="Tieni traccia dei libri che leggi e condividili con il tuo gruppo di amici: note, citazioni, like e commenti.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js" defer></script>
+  <script src="ui.js" defer></script>
 </head>
 <body class="landing-page">
 
   <nav class="landing-nav">
     <div class="landing-nav-inner">
       <a href="index.html" class="landing-nav-brand">Traccia Libri</a>
-      <div class="landing-nav-actions"></div>
+      <div class="landing-nav-actions">
+        <a href="login.html" class="btn-nav-ghost">Accedi</a>
+        <a href="login.html#register" class="btn-nav-cta">Crea un account</a>
+      </div>
     </div>
   </nav>
 
-  <section class="hero">
-    <div class="hero-inner">
-      <span class="hero-eyebrow">Per i lettori del gruppo</span>
-      <h1>Tieni traccia di ogni libro che leggi</h1>
-      <p>Cataloga le tue letture, scrivi note e condividi con il tuo gruppo di amici. Semplice, veloce, gratuito.</p>
-      <div class="hero-actions">
-        <a href="login.html#register" class="btn-hero-primary">Crea un account</a>
-        <a href="login.html" class="btn-hero-secondary">Accedi</a>
-      </div>
-    </div>
-  </section>
+  <main>
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h1>Tieni traccia di ogni libro che leggi</h1>
+          <p>Cataloga le tue letture, scrivi note e condividile con il tuo gruppo di amici. Semplice, veloce, gratuito.</p>
+          <div class="hero-actions">
+            <a href="login.html#register" class="btn-hero-primary">Crea un account</a>
+            <a href="login.html" class="btn-hero-secondary">Ho già un account</a>
+          </div>
+        </div>
 
-  <section class="features">
-    <div class="features-inner">
-      <span class="features-label">Funzionalità</span>
-      <h2>Tutto quello che ti serve</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <h3>Catalogo personale</h3>
-          <p>Aggiungi ogni libro con titolo, autore, date di lettura, pagine e le tue note personali.</p>
-        </div>
-        <div class="feature-card">
-          <h3>Libreria condivisa</h3>
-          <p>Vedi in tempo reale i libri letti da tutti gli amici del gruppo. Scopri nuovi titoli.</p>
-        </div>
-        <div class="feature-card">
-          <h3>Note e citazioni</h3>
-          <p>Salva le citazioni preferite, i personaggi memorabili e i tuoi pensieri su ogni libro.</p>
-        </div>
-        <div class="feature-card">
-          <h3>Sempre aggiornato</h3>
-          <p>Modifica e aggiorna le tue schede in qualsiasi momento. I dati sono sempre sincronizzati.</p>
+        <div class="hero-preview" aria-hidden="true">
+          <div class="preview-window">
+            <div class="preview-head">
+              <div>
+                <div class="preview-title">Club del giovedì</div>
+                <div class="preview-sub">4 membri · 12 libri condivisi</div>
+              </div>
+              <span class="preview-avatars"><span>G</span><span>M</span><span>S</span><span>L</span></span>
+            </div>
+
+            <div class="preview-book">
+              <div class="cover cover-md" style="--cloth:#2b3b57"><span class="cover-initial">C</span></div>
+              <div class="preview-book-text">
+                <div class="preview-book-title">Le città invisibili</div>
+                <div class="preview-book-author">Italo Calvino</div>
+                <div class="preview-book-meta"><span>Giulia</span><span class="period">2 ott → 19 ott 2026</span></div>
+              </div>
+              <span class="preview-likes liked"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>3</span>
+            </div>
+            <div class="preview-quote">
+              <p>“L’inferno dei viventi non è qualcosa che sarà; se ce n’è uno, è quello che è già qui.”</p>
+            </div>
+            <div class="preview-comment">
+              <span class="avatar">M</span>
+              <div><strong>Marco</strong> Io scelgo Zaira. Giovedì portiamo ognuno la sua città.</div>
+            </div>
+
+            <div class="preview-book">
+              <div class="cover cover-md" style="--cloth:#2f5446"><span class="cover-initial">L</span></div>
+              <div class="preview-book-text">
+                <div class="preview-book-title">Lessico famigliare</div>
+                <div class="preview-book-author">Natalia Ginzburg</div>
+                <div class="preview-book-meta"><span>Marco</span><span class="period">10 set → 28 set 2026</span></div>
+              </div>
+              <span class="preview-likes"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>2</span>
+            </div>
+
+            <div class="preview-book">
+              <div class="cover cover-md" style="--cloth:#8c3f2a"><span class="cover-initial">S</span></div>
+              <div class="preview-book-text">
+                <div class="preview-book-title">Il sistema periodico</div>
+                <div class="preview-book-author">Primo Levi</div>
+                <div class="preview-book-meta"><span>Sara</span><span class="period">in lettura dal 4 nov 2026</span></div>
+              </div>
+              <span class="preview-likes"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>1</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="features">
+      <div class="features-inner">
+        <h2>Un diario di lettura da tenere insieme</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+            <h3>Catalogo personale</h3>
+            <p>Aggiungi ogni libro con titolo, autore, date di lettura, pagine e le tue note personali.</p>
+          </div>
+          <div class="feature-card">
+            <svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <h3>Gruppi di lettura</h3>
+            <p>Crea un gruppo, invita gli amici con un codice e guarda cosa stanno leggendo. Un like o un commento su ogni libro.</p>
+          </div>
+          <div class="feature-card">
+            <svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+            <h3>Note e citazioni</h3>
+            <p>Salva la frase che ti ha colpito, il libro riassunto in una riga e i tuoi pensieri a margine.</p>
+          </div>
+          <div class="feature-card">
+            <svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <h3>Privato o condiviso</h3>
+            <p>Ogni scheda può restare solo tua o andare nei gruppi che scegli. Puoi cambiare idea quando vuoi.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <footer class="landing-footer">
-    &copy; 2025 Traccia Libri Lettura. Tutti i diritti riservati.
+    &copy; 2025 Traccia Libri
   </footer>
 
 </body>

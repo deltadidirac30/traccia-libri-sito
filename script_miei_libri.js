@@ -14,7 +14,7 @@ window.handleEditVisibilityChange = handleEditVisibilityChange;
 async function loadMyBooks() {
     const booksList = document.getElementById('books-list');
     booksList.innerHTML =
-        '<p style="color:var(--t3);padding:20px 0;font-size:15px;">Caricamento in corso...</p>';
+        '<p class="loading-text">Caricamento…</p>';
 
     const { data: books, error } = await db
         .from('books')
@@ -29,9 +29,9 @@ async function loadMyBooks() {
     if (!books || books.length === 0) {
         booksList.innerHTML = `
             <div class="empty-state">
-                <div style="font-size:3rem;margin-bottom:12px;">📚</div>
+                <span class="empty-icon">${icon('books', 20)}</span>
                 <h3>La tua libreria è vuota</h3>
-                <p>Non hai ancora aggiunto nessun libro. Inizia adesso — ogni grande libreria parte da un solo libro!</p>
+                <p>Aggiungi il primo libro che hai letto o che stai leggendo.</p>
                 <a href="aggiungi_libro.html" class="btn-primary btn">Aggiungi il primo libro</a>
             </div>`;
         return;
@@ -40,24 +40,26 @@ async function loadMyBooks() {
     booksList.innerHTML = '';
 
     for (const book of books) {
-        // Badge visibilità
+        // Visibilità
         const nGroups = Array.isArray(book.group_ids) ? book.group_ids.length : 0;
-        const visibilityBadge = book.visibility === 'group'
-            ? ` &middot; <em>Condiviso in ${nGroups} ${nGroups === 1 ? 'gruppo' : 'gruppi'}</em>`
-            : '';
+        const visibility = book.visibility === 'group'
+            ? `${icon('users', 14)} Condiviso in ${nGroups} ${nGroups === 1 ? 'gruppo' : 'gruppi'}`
+            : `${icon('lock', 14)} Privato`;
+        const period = readingPeriod(book.start_date, book.end_date);
 
         const card = document.createElement('div');
         card.className = 'book-card';
         card.innerHTML = `
-            <div class="book-card-title">${sanitize(book.title)}</div>
-            <div class="book-card-author">${sanitize(book.author)}</div>
-            ${book.end_date
-                ? `<div class="book-card-meta">Fine lettura: ${sanitize(book.end_date)}${visibilityBadge}</div>`
-                : visibilityBadge
-                    ? `<div class="book-card-meta">${visibilityBadge.replace(' &middot; ', '')}</div>`
-                    : ''}
+            <a href="scheda.html?id=${book.id}" class="book-card-main">
+                ${bookCover(book)}
+                <div class="book-card-text">
+                    <div class="book-card-title">${sanitize(book.title)}</div>
+                    <div class="book-card-author">${sanitize(book.author)}</div>
+                    ${period ? `<div class="book-card-meta"><span class="period">${sanitize(period)}</span></div>` : ''}
+                </div>
+            </a>
             <div class="book-card-footer">
-                <a href="scheda.html?id=${book.id}" class="link-view">Visualizza scheda</a>
+                <span class="visibility-tag">${visibility}</span>
                 <div class="book-card-actions">
                     <button class="edit-button"   onclick="editBook('${book.id}')">Modifica</button>
                     <button class="delete-button" onclick="deleteBook('${book.id}')">Elimina</button>
@@ -72,9 +74,9 @@ function deleteBook(bookId) {
     showConfirm('Sei sicuro di voler eliminare questo libro?', async () => {
         const { error } = await db.from('books').delete().eq('id', bookId);
         if (error) {
-            showToast('Errore durante l\'eliminazione.', 'error');
+            showToast('Errore durante l\'eliminazione', 'error');
         } else {
-            showToast('Libro eliminato con successo.', 'success');
+            showToast('Libro eliminato con successo', 'success');
             loadMyBooks();
         }
     });
@@ -89,7 +91,7 @@ async function editBook(bookId) {
     const { data: book, error } = await db
         .from('books').select('*').eq('id', bookId).single();
 
-    if (error || !book) { showToast('Libro non trovato.', 'error'); return; }
+    if (error || !book) { showToast('Libro non trovato', 'error'); return; }
 
     document.getElementById('edit-addedBy').value         = book.added_by        ?? '';
     document.getElementById('edit-title').value           = book.title            ?? '';
@@ -112,7 +114,7 @@ async function editBook(bookId) {
     const currentGroupIds = Array.isArray(book.group_ids) ? book.group_ids : [];
     if (editUserGroups.length === 0) {
         checkboxWrap.innerHTML =
-            '<p style="font-size:14px;color:var(--t3);margin:4px 0;">Nessun gruppo disponibile</p>';
+            '<p class="field-hint">Non sei ancora in nessun gruppo</p>';
     } else {
         checkboxWrap.innerHTML = editUserGroups.map(g => `
             <label class="checkbox-label">
@@ -137,7 +139,7 @@ async function editBook(bookId) {
             : [];
 
         if (visibility === 'group' && groupIds.length === 0) {
-            showToast('Seleziona almeno un gruppo.', 'error');
+            showToast('Seleziona almeno un gruppo', 'error');
             return;
         }
 
@@ -157,9 +159,9 @@ async function editBook(bookId) {
         }).eq('id', bookId);
 
         if (updateError) {
-            showToast('Errore durante l\'aggiornamento.', 'error');
+            showToast('Errore durante l\'aggiornamento', 'error');
         } else {
-            showToast('Scheda aggiornata!', 'success');
+            showToast('Scheda aggiornata', 'success');
             editSection.style.display = 'none';
             loadMyBooks();
         }

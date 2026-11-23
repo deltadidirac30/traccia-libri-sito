@@ -5,7 +5,7 @@ let currentUser = null;
 function renderList(containerId, items, renderFn, emptyMsg) {
     const el = document.getElementById(containerId);
     if (!items || items.length === 0) {
-        el.innerHTML = `<p style="color:var(--t3);font-size:14px;">${emptyMsg}</p>`;
+        el.innerHTML = `<p class="activity-empty">${emptyMsg}</p>`;
         return;
     }
     el.innerHTML = items.map(renderFn).join('');
@@ -74,11 +74,11 @@ async function loadActivity() {
         c => `<div class="activity-item">
             <span class="activity-item-text">
                 <a href="scheda.html?id=${c.books?.id}" class="activity-item-book">${sanitize(c.books?.title ?? '—')}</a>
-                — ${sanitize(c.content.substring(0, 50))}${c.content.length > 50 ? '…' : ''}
+                <span class="activity-item-excerpt">${sanitize(c.content.substring(0, 80))}${c.content.length > 80 ? '…' : ''}</span>
             </span>
-            <span class="activity-item-date">${new Date(c.created_at).toLocaleDateString('it-IT')}</span>
+            <span class="activity-item-date">${formatDate(c.created_at)}</span>
         </div>`,
-        'Nessun commento ancora.'
+        'Nessun commento scritto'
     );
 
     // Commenti ricevuti
@@ -88,11 +88,11 @@ async function loadActivity() {
         c => `<div class="activity-item">
             <span class="activity-item-text">
                 <a href="scheda.html?id=${c.books?.id}" class="activity-item-book">${sanitize(c.books?.title ?? '—')}</a>
-                — ${sanitize(c.content.substring(0, 50))}${c.content.length > 50 ? '…' : ''}
+                <span class="activity-item-excerpt">${sanitize(c.content.substring(0, 80))}${c.content.length > 80 ? '…' : ''}</span>
             </span>
-            <span class="activity-item-date">${new Date(c.created_at).toLocaleDateString('it-IT')}</span>
+            <span class="activity-item-date">${formatDate(c.created_at)}</span>
         </div>`,
-        'Nessun commento ricevuto.'
+        'Nessun commento ricevuto'
     );
 
     // Like dati
@@ -103,9 +103,9 @@ async function loadActivity() {
             <span class="activity-item-text">
                 <a href="scheda.html?id=${l.books?.id}" class="activity-item-book">${sanitize(l.books?.title ?? '—')}</a>
             </span>
-            <span class="activity-item-date">${new Date(l.created_at).toLocaleDateString('it-IT')}</span>
+            <span class="activity-item-date">${formatDate(l.created_at)}</span>
         </div>`,
-        'Nessun like dato ancora.'
+        'Nessun like dato'
     );
 
     // Like ricevuti
@@ -116,9 +116,9 @@ async function loadActivity() {
             <span class="activity-item-text">
                 <a href="scheda.html?id=${l.books?.id}" class="activity-item-book">${sanitize(l.books?.title ?? '—')}</a>
             </span>
-            <span class="activity-item-date">${new Date(l.created_at).toLocaleDateString('it-IT')}</span>
+            <span class="activity-item-date">${formatDate(l.created_at)}</span>
         </div>`,
-        'Nessun like ricevuto.'
+        'Nessun like ricevuto'
     );
 }
 

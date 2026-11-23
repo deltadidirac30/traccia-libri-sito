@@ -36,7 +36,7 @@ async function caricaGruppi() {
 
     if (userGroups.length === 0) {
         container.innerHTML =
-            '<p style="font-size:14px;color:var(--t3);margin:4px 0;">Nessun gruppo — creane uno nella sezione Gruppi</p>';
+            '<p class="field-hint">Non sei ancora in nessun gruppo. Puoi crearne uno nella pagina Gruppi.</p>';
     } else {
         container.innerHTML = userGroups.map(g => `
             <label class="checkbox-label">
@@ -61,7 +61,7 @@ if (bookForm) {
     bookForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentUser) {
-            showToast('Devi essere autenticato per inserire un libro.', 'error');
+            showToast('Devi essere autenticato per inserire un libro', 'error');
             return;
         }
 
@@ -75,7 +75,7 @@ if (bookForm) {
             : [];
 
         if (visibility === 'group' && groupIds.length === 0) {
-            showToast('Seleziona almeno un gruppo.', 'error');
+            showToast('Seleziona almeno un gruppo', 'error');
             saveBtn.disabled    = false;
             saveBtn.textContent = 'Salva scheda';
             return;
@@ -102,7 +102,7 @@ if (bookForm) {
         if (error) {
             showToast('Errore durante il salvataggio: ' + error.message, 'error');
         } else {
-            showToast('Libro salvato con successo!', 'success');
+            showToast('Libro salvato con successo', 'success');
             bookForm.reset();
             const wrapper = document.getElementById('group-select-wrapper');
             if (wrapper) wrapper.style.display = 'none';

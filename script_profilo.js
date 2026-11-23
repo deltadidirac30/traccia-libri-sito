@@ -20,7 +20,7 @@ document.getElementById('nickname-form').addEventListener('submit', async (e) =>
     if (error) {
         showToast('Errore: ' + error.message, 'error');
     } else {
-        showToast('Nickname aggiornato!', 'success');
+        showToast('Nickname aggiornato', 'success');
         document.getElementById('new-nickname').value = '';
     }
 
@@ -44,7 +44,7 @@ document.getElementById('email-form').addEventListener('submit', async (e) => {
         password: pwd
     });
     if (authErr) {
-        showToast('Password non corretta.', 'error');
+        showToast('Password non corretta', 'error');
         btn.disabled    = false;
         btn.textContent = 'Salva email';
         return;
@@ -56,7 +56,7 @@ document.getElementById('email-form').addEventListener('submit', async (e) => {
     } else {
         // Aggiorna anche la tabella profiles
         await db.from('profiles').update({ email: newEmail }).eq('id', currentUser.id);
-        showToast('Email aggiornata! Controlla la nuova casella per la conferma.', 'success');
+        showToast('Email aggiornata! Controlla la nuova casella per la conferma', 'success');
         document.getElementById('email-form').reset();
         document.getElementById('current-email').value = newEmail;
     }
@@ -74,7 +74,7 @@ document.getElementById('pwd-form').addEventListener('submit', async (e) => {
     const btn        = document.getElementById('save-pwd-btn');
 
     if (newPwd !== confirm) {
-        showToast('Le nuove password non coincidono.', 'error');
+        showToast('Le nuove password non coincidono', 'error');
         return;
     }
 
@@ -87,7 +87,7 @@ document.getElementById('pwd-form').addEventListener('submit', async (e) => {
         password: currentPwd
     });
     if (authErr) {
-        showToast('Password attuale non corretta.', 'error');
+        showToast('Password attuale non corretta', 'error');
         btn.disabled    = false;
         btn.textContent = 'Salva password';
         return;
@@ -97,7 +97,7 @@ document.getElementById('pwd-form').addEventListener('submit', async (e) => {
     if (error) {
         showToast('Errore: ' + error.message, 'error');
     } else {
-        showToast('Password aggiornata!', 'success');
+        showToast('Password aggiornata', 'success');
         document.getElementById('pwd-form').reset();
     }
 

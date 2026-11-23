@@ -19,8 +19,8 @@ async function loadLikes(book) {
 
     const liked = !!myLike;
     wrap.innerHTML = `
-        <button class="like-btn ${liked ? 'liked' : ''}" id="like-btn">
-            ${liked ? '♥' : '♡'} <span id="like-count">${count ?? 0}</span>
+        <button class="like-btn like-btn-lg ${liked ? 'liked' : ''}" id="like-btn" aria-pressed="${liked}">
+            ${likeInner(liked, count ?? 0, 'id="like-count"')}
         </button>`;
 
     document.getElementById('like-btn').addEventListener('click', async () => {
@@ -33,17 +33,19 @@ async function loadLikes(book) {
             const { error } = await db.from('book_likes').delete().eq('book_id', bookId).eq('user_id', currentUser.id);
             if (!error) {
                 btn.classList.remove('liked');
-                btn.innerHTML = `♡ <span id="like-count">${Math.max(0, parseInt(countEl.textContent) - 1)}</span>`;
+                btn.setAttribute('aria-pressed', 'false');
+                btn.innerHTML = likeInner(false, Math.max(0, parseInt(countEl.textContent) - 1), 'id="like-count"');
             } else {
-                showToast('Errore durante la rimozione del like.', 'error');
+                showToast('Errore durante la rimozione del like', 'error');
             }
         } else {
             const { error } = await db.from('book_likes').insert({ book_id: bookId, user_id: currentUser.id });
             if (!error) {
                 btn.classList.add('liked');
-                btn.innerHTML = `♥ <span id="like-count">${parseInt(countEl.textContent) + 1}</span>`;
+                btn.setAttribute('aria-pressed', 'true');
+                btn.innerHTML = likeInner(true, parseInt(countEl.textContent) + 1, 'id="like-count"');
             } else {
-                showToast('Errore durante il like.', 'error');
+                showToast('Errore durante il like', 'error');
             }
         }
         btn.disabled = false;
@@ -57,7 +59,7 @@ async function loadComments(bookId) {
 
     const { data: comments } = await db
         .from('book_comments')
-        .select('id, content, created_at, profiles(nickname)')
+        .select('id, content, created_at, user_id, profiles(nickname)')
         .eq('book_id', bookId)
         .order('created_at', { ascending: true });
 
@@ -65,7 +67,7 @@ async function loadComments(bookId) {
     listEl.innerHTML = '';
 
     if (!comments || comments.length === 0) {
-        listEl.innerHTML = '<p style="color:var(--t3);font-size:14px;">Ancora nessun commento.</p>';
+        listEl.innerHTML = '<p class="comments-empty">Ancora nessun commento. Scrivi il primo.</p>';
     } else {
         for (const c of comments) {
             const isOwn = c.user_id === currentUser.id;
@@ -75,8 +77,8 @@ async function loadComments(bookId) {
             item.innerHTML = `
                 <div class="comment-header">
                     <span class="comment-author">${sanitize(c.profiles?.nickname ?? '?')}</span>
-                    <span class="comment-date">${new Date(c.created_at).toLocaleDateString('it-IT')}</span>
-                    ${isOwn ? `<button class="comment-delete-btn" data-id="${c.id}">✕</button>` : ''}
+                    <span class="comment-date">${formatDate(c.created_at)}</span>
+                    ${isOwn ? `<button class="comment-delete-btn" data-id="${c.id}" aria-label="Elimina commento">${icon('x', 14)}</button>` : ''}
                 </div>
                 <p class="comment-text">${sanitize(c.content)}</p>`;
             listEl.appendChild(item);
@@ -91,7 +93,7 @@ async function loadComments(bookId) {
         const { error } = await db.from('book_comments').delete().eq('id', commentId);
         if (!error) {
             btn.closest('.comment-item').remove();
-            showToast('Commento eliminato.', 'success');
+            showToast('Commento eliminato', 'success');
         }
     });
 }
@@ -116,61 +118,72 @@ async function loadBookDetails() {
         return;
     }
 
+    const period = readingPeriod(book.start_date, book.end_date);
+    document.title = `${book.title} — Traccia Libri`;
     container.innerHTML = `
-        <div class="book-detail-header">
-            <h1>${sanitize(book.title)}</h1>
-            <p>di <strong>${sanitize(book.author)}</strong></p>
-            <p class="book-detail-meta">Aggiunto da <strong>${sanitize(book.added_by)}</strong></p>
-        </div>
+        <aside class="book-aside">
+            ${bookCover(book, 'lg')}
+            <dl class="detail-rows">
+                <div class="detail-row">
+                    <dt class="dr-label">Pubblicato</dt>
+                    <dd class="dr-value">${sanitize(book.publication_date || '—')}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt class="dr-label">Pagine</dt>
+                    <dd class="dr-value">${book.pages ? sanitize(String(book.pages)) : '—'}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt class="dr-label">Inizio lettura</dt>
+                    <dd class="dr-value">${sanitize(formatDate(book.start_date) || '—')}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt class="dr-label">Fine lettura</dt>
+                    <dd class="dr-value">${sanitize(formatDate(book.end_date) || '—')}</dd>
+                </div>
+            </dl>
+        </aside>
 
-        <div class="detail-rows">
-            <div class="detail-row">
-                <span class="dr-label">Anno di pubblicazione</span>
-                <span class="dr-value">${sanitize(book.publication_date || '—')}</span>
-            </div>
-            <div class="detail-row">
-                <span class="dr-label">Numero di pagine</span>
-                <span class="dr-value">${book.pages ? sanitize(String(book.pages)) + ' pag.' : '—'}</span>
-            </div>
-            <div class="detail-row">
-                <span class="dr-label">Inizio lettura</span>
-                <span class="dr-value">${sanitize(book.start_date || '—')}</span>
-            </div>
-            <div class="detail-row">
-                <span class="dr-label">Fine lettura</span>
-                <span class="dr-value">${sanitize(book.end_date || '—')}</span>
-            </div>
-        </div>
+        <article class="book-main">
+            <header class="book-detail-header">
+                <h1>${sanitize(book.title)}</h1>
+                <p class="book-detail-author">${sanitize(book.author)}</p>
+                <p class="book-detail-meta">
+                    <span>Aggiunto da ${sanitize(book.added_by)}</span>
+                    ${period ? `<span class="period">${sanitize(period)}</span>` : ''}
+                    ${book.visibility === 'group' ? '' : `<span class="visibility-tag">${icon('lock', 14)} Privato</span>`}
+                </p>
+            </header>
 
-        ${book.quote ? `
-        <div class="detail-section">
-            <div class="ds-label">Citazione preferita</div>
-            <blockquote class="book-quote">${sanitize(book.quote)}</blockquote>
-        </div>` : ''}
+            ${book.quote ? `
+            <figure class="detail-quote">
+                <blockquote class="book-quote">${sanitize(book.quote)}</blockquote>
+                <figcaption>Citazione preferita</figcaption>
+            </figure>` : ''}
 
-        ${book.summary ? `
-        <div class="detail-section">
-            <div class="ds-label">Il libro in una frase</div>
-            <p class="ds-text">${sanitize(book.summary)}</p>
-        </div>` : ''}
+            ${book.summary ? `
+            <section class="detail-section">
+                <h2 class="ds-label">Il libro in una frase</h2>
+                <p class="ds-text ds-summary">${sanitize(book.summary)}</p>
+            </section>` : ''}
 
-        ${book.notes ? `
-        <div class="detail-section">
-            <div class="ds-label">Note di lettura</div>
-            <p class="ds-text">${sanitize(book.notes)}</p>
-        </div>` : ''}
+            ${book.notes ? `
+            <section class="detail-section">
+                <h2 class="ds-label">Note di lettura</h2>
+                <p class="ds-text">${sanitize(book.notes)}</p>
+            </section>` : ''}
 
-        <div class="social-bar" id="likes-section"></div>
+            <div class="social-bar social-bar-detail" id="likes-section"></div>
 
-        ${book.visibility === 'group' ? `
-        <div class="comments-section" id="comments-section">
-            <div class="section-title">Commenti</div>
-            <div id="comments-list"></div>
-            <form class="comment-form" id="comment-form">
-                <textarea class="comment-input" id="comment-input" placeholder="Scrivi un commento..." maxlength="1000" rows="3" required></textarea>
-                <button type="submit" class="comment-submit">Invia</button>
-            </form>
-        </div>` : ''}
+            ${book.visibility === 'group' ? `
+            <section class="comments-section" id="comments-section">
+                <h2 class="section-title" id="commenti">Commenti</h2>
+                <div id="comments-list"></div>
+                <form class="comment-form" id="comment-form">
+                    <textarea class="comment-input" id="comment-input" placeholder="Scrivi un commento" maxlength="1000" rows="3" required></textarea>
+                    <button type="submit" class="comment-submit">Invia</button>
+                </form>
+            </section>` : ''}
+        </article>
     `;
 
     // Social
@@ -190,7 +203,7 @@ async function loadBookDetails() {
                 content
             });
             if (error) {
-                showToast('Errore durante l\'invio del commento.', 'error');
+                showToast('Errore durante l\'invio del commento', 'error');
             } else {
                 input.value = '';
                 await loadComments(bookId);

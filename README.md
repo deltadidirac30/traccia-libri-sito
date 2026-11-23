@@ -47,6 +47,7 @@ No algorithms. No ads. Just your books and your people.
 | Layer | Technology |
 |---|---|
 | Frontend | Vanilla HTML, CSS, JavaScript (no framework) |
+| Type & motion | Newsreader, Instrument Sans, IBM Plex Mono (Google Fonts) · [Motion](https://motion.dev) via CDN |
 | Backend / Database | [Supabase](https://supabase.com) (PostgreSQL + Row Level Security) |
 | Auth | Supabase Auth (email + password) |
 | Hosting | GitHub Pages |
@@ -109,7 +110,8 @@ traccia_libri_sito/
 ├── profilo.html
 ├── attivita.html
 ├── style.css               # Single stylesheet — design system + all components
-├── supabaseClient.js       # Supabase client, auth guard, shared utilities
+├── supabaseClient.js       # Supabase client, auth guard, shared utilities (icons, dates, book covers)
+├── ui.js                   # Micro-animations with Motion (motion.dev), optional enhancement
 ├── script.js               # Add book form
 ├── script_gruppi.js
 ├── script_libri_all.js

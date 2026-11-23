@@ -24,7 +24,7 @@ document.getElementById('reset-form').addEventListener('submit', async (e) => {
     const btn        = document.getElementById('reset-btn');
 
     if (newPwd !== confirmPwd) {
-        showToast('Le password non coincidono.', 'error');
+        showToast('Le password non coincidono', 'error');
         return;
     }
 
@@ -38,7 +38,7 @@ document.getElementById('reset-form').addEventListener('submit', async (e) => {
         btn.disabled    = false;
         btn.textContent = 'Salva nuova password';
     } else {
-        showToast('Password aggiornata!', 'success');
+        showToast('Password aggiornata', 'success');
         setTimeout(() => window.location.href = 'home.html', 1200);
     }
 });

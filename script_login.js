@@ -57,7 +57,7 @@ document.getElementById('forgot-form').addEventListener('submit', async (e) => {
         btn.disabled    = false;
         btn.textContent = 'Invia link';
     } else {
-        showToast('Link inviato! Controlla la tua email.', 'success');
+        showToast('Link inviato, controlla la tua email', 'success');
         btn.textContent = 'Link inviato ✓';
     }
 });
@@ -75,7 +75,7 @@ loginForm.addEventListener('submit', async (e) => {
     const { error } = await db.auth.signInWithPassword({ email, password });
 
     if (error) {
-        showToast('Credenziali non valide. Riprova.', 'error');
+        showToast('Email o password non corrette', 'error');
         btn.disabled    = false;
         btn.textContent = 'Accedi';
     } else {
@@ -91,7 +91,7 @@ registerForm.addEventListener('submit', async (e) => {
     const password = document.getElementById('register-password').value;
     const btn      = document.getElementById('register-btn');
 
-    if (!nickname) { showToast('Inserisci un nickname.', 'error'); return; }
+    if (!nickname) { showToast('Inserisci un nickname', 'error'); return; }
 
     btn.disabled  = true;
     btn.innerHTML = '<span class="spinner"></span> Creazione account...';
@@ -109,7 +109,7 @@ registerForm.addEventListener('submit', async (e) => {
         btn.disabled    = false;
         btn.textContent = 'Crea account';
     } else {
-        showToast('Account creato! Benvenuto.', 'success');
+        showToast('Account creato', 'success');
         setTimeout(() => window.location.href = 'home.html', 900);
     }
 });

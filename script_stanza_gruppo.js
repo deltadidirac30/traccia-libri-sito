@@ -10,7 +10,7 @@ function getGroupIdFromUrl() {
 // --- Copia il codice invito ---
 function copyInviteCode(code) {
     navigator.clipboard.writeText(code)
-        .then(() => showToast('Codice copiato!', 'success'))
+        .then(() => showToast('Codice copiato', 'success'))
         .catch(() => showToast('Codice: ' + code, 'info'));
 }
 window.copyInviteCode = copyInviteCode;
@@ -25,17 +25,19 @@ async function toggleLike(bookId, btn) {
         const { error } = await db.from('book_likes').delete().eq('book_id', bookId).eq('user_id', currentUser.id);
         if (!error) {
             btn.classList.remove('liked');
-            btn.innerHTML = `♡ <span class="like-num">${Math.max(0, parseInt(countEl.textContent) - 1)}</span>`;
+            btn.setAttribute('aria-pressed', 'false');
+            btn.innerHTML = likeInner(false, Math.max(0, parseInt(countEl.textContent) - 1));
         } else {
-            showToast('Errore durante la rimozione del like.', 'error');
+            showToast('Errore durante la rimozione del like', 'error');
         }
     } else {
         const { error } = await db.from('book_likes').insert({ book_id: bookId, user_id: currentUser.id });
         if (!error) {
             btn.classList.add('liked');
-            btn.innerHTML = `♥ <span class="like-num">${parseInt(countEl.textContent) + 1}</span>`;
+            btn.setAttribute('aria-pressed', 'true');
+            btn.innerHTML = likeInner(true, parseInt(countEl.textContent) + 1);
         } else {
-            showToast('Errore durante il like.', 'error');
+            showToast('Errore durante il like', 'error');
         }
     }
     btn.disabled = false;
@@ -46,7 +48,7 @@ async function loadComments(bookId) {
     const wrap = document.getElementById(`comments-${bookId}`);
     if (!wrap) return;
 
-    wrap.innerHTML = '<p style="color:var(--t3);font-size:13px;">Caricamento...</p>';
+    wrap.innerHTML = '<p class="loading-text">Caricamento…</p>';
 
     const { data: comments } = await db
         .from('book_comments')
@@ -56,7 +58,7 @@ async function loadComments(bookId) {
 
     let listHtml = '';
     if (!comments || comments.length === 0) {
-        listHtml = '<p style="color:var(--t3);font-size:13px;margin-bottom:10px;">Ancora nessun commento.</p>';
+        listHtml = '<p class="comments-empty">Ancora nessun commento</p>';
     } else {
         for (const c of comments) {
             const isOwn = c.user_id === currentUser.id;
@@ -64,8 +66,8 @@ async function loadComments(bookId) {
                 <div class="comment-item" data-id="${c.id}">
                     <div class="comment-header">
                         <span class="comment-author">${sanitize(c.profiles?.nickname ?? '?')}</span>
-                        <span class="comment-date">${new Date(c.created_at).toLocaleDateString('it-IT')}</span>
-                        ${isOwn ? `<button class="comment-delete-btn" data-comment-id="${c.id}" data-book-id="${bookId}">✕</button>` : ''}
+                        <span class="comment-date">${formatDate(c.created_at)}</span>
+                        ${isOwn ? `<button class="comment-delete-btn" data-comment-id="${c.id}" data-book-id="${bookId}" aria-label="Elimina commento">${icon('x', 14)}</button>` : ''}
                     </div>
                     <p class="comment-text">${sanitize(c.content)}</p>
                 </div>`;
@@ -75,7 +77,7 @@ async function loadComments(bookId) {
     wrap.innerHTML = `
         <div id="comments-list-${bookId}">${listHtml}</div>
         <form class="comment-form" data-book-id="${bookId}">
-            <textarea class="comment-input" placeholder="Scrivi un commento..." maxlength="1000" rows="2" required></textarea>
+            <textarea class="comment-input" placeholder="Scrivi un commento" maxlength="1000" rows="2" required></textarea>
             <button type="submit" class="comment-submit">Invia</button>
         </form>`;
 }
@@ -88,9 +90,9 @@ async function promoteToAdmin(groupId, targetUserId) {
             p_target: targetUserId
         });
         if (error) {
-            showToast('Errore durante la promozione.', 'error');
+            showToast('Errore durante la promozione', 'error');
         } else {
-            showToast('Membro promosso ad amministratore!', 'success');
+            showToast('Membro promosso ad amministratore', 'success');
             await loadRoom();
         }
     }, 'Promuovi', false);
@@ -104,9 +106,9 @@ async function removeMember(groupId, targetUserId) {
         p_target: targetUserId
     });
     if (error) {
-        showToast('Errore durante la rimozione.', 'error');
+        showToast('Errore durante la rimozione', 'error');
     } else {
-        showToast('Membro rimosso.', 'success');
+        showToast('Membro rimosso', 'success');
         await loadRoom();
     }
 }
@@ -121,9 +123,9 @@ async function leaveGroup(groupId) {
             .eq('group_id', groupId)
             .eq('user_id', currentUser.id);
         if (error) {
-            showToast('Errore durante l\'uscita dal gruppo.', 'error');
+            showToast('Errore durante l\'uscita dal gruppo', 'error');
         } else {
-            showToast('Hai lasciato il gruppo.', 'success');
+            showToast('Hai lasciato il gruppo', 'success');
             window.location.href = 'gruppi.html';
         }
     });
@@ -135,9 +137,9 @@ async function deleteGroup(groupId, groupName) {
     showConfirm(`Eliminare definitivamente il gruppo "${groupName}" e tutti i suoi dati?`, async () => {
         const { error } = await db.from('groups').delete().eq('id', groupId);
         if (error) {
-            showToast('Errore durante l\'eliminazione del gruppo.', 'error');
+            showToast('Errore durante l\'eliminazione del gruppo', 'error');
         } else {
-            showToast('Gruppo eliminato.', 'success');
+            showToast('Gruppo eliminato', 'success');
             window.location.href = 'gruppi.html';
         }
     });
@@ -177,22 +179,24 @@ async function loadRoom() {
 
     // --- Render header ---
     document.getElementById('group-header').innerHTML = `
-        <div class="home-header" style="margin-bottom:0;">
-            <h1>${sanitize(group.name)}</h1>
-        </div>
-        ${isAdmin ? `
-        <div class="room-invite-box" style="margin-top:16px;">
-            <span style="font-size:13px;color:var(--t2);">Codice invito:</span>
-            <code class="room-invite-code">${sanitize(group.invite_code)}</code>
-            <button class="btn-secondary" style="font-size:12px;padding:4px 12px;"
-                    onclick="copyInviteCode('${sanitize(group.invite_code)}')">Copia</button>
-            <button class="delete-button" style="font-size:12px;margin-left:8px;"
-                    onclick="deleteGroup('${group.id}', '${sanitize(group.name)}')">Elimina gruppo</button>
-        </div>` : `
-        <div style="margin-top:12px;">
-            <button class="btn-secondary" style="font-size:13px;"
-                    onclick="leaveGroup('${group.id}')">Lascia gruppo</button>
-        </div>`}`;
+        <div class="room-header">
+            <div>
+                <h1>${sanitize(group.name)}</h1>
+                <p class="room-header-meta">${members.length} ${members.length === 1 ? 'membro' : 'membri'} · ${books.length} ${books.length === 1 ? 'libro condiviso' : 'libri condivisi'}</p>
+            </div>
+            ${isAdmin ? `
+            <div class="room-header-actions">
+                <div class="room-invite-box">
+                    <span class="room-invite-label">Codice invito</span>
+                    <code class="room-invite-code">${sanitize(group.invite_code)}</code>
+                    <button class="btn-secondary btn-sm" onclick="copyInviteCode('${sanitize(group.invite_code)}')">${icon('copy', 14)} Copia</button>
+                </div>
+                <button class="delete-button" onclick="deleteGroup('${group.id}', '${sanitize(group.name)}')">Elimina gruppo</button>
+            </div>` : `
+            <div class="room-header-actions">
+                <button class="btn-secondary" onclick="leaveGroup('${group.id}')">Lascia gruppo</button>
+            </div>`}
+        </div>`;
 
     // --- Render libri ---
     const booksContainer = document.getElementById('books-container');
@@ -200,10 +204,10 @@ async function loadRoom() {
     if (books.length === 0) {
         booksContainer.innerHTML = `
             <div class="empty-state">
-                <div style="font-size:3rem;margin-bottom:12px;">📖</div>
+                <span class="empty-icon">${icon('book', 20)}</span>
                 <h3>Ancora nessun libro</h3>
-                <p>Sii il primo a caricare un libro in questo gruppo!</p>
-                <a href="aggiungi_libro.html" class="btn-primary btn">Aggiungi Libro</a>
+                <p>Aggiungi il primo libro e condividilo con questo gruppo.</p>
+                <a href="aggiungi_libro.html" class="btn-primary btn">Aggiungi un libro</a>
             </div>`;
     } else {
         // Batch carica likes e commenti
@@ -235,28 +239,36 @@ async function loadRoom() {
             const commentCount = commentCounts[book.id] ?? 0;
 
             const actionsHtml = (isOwner || isAdmin)
-                ? `<button class="delete-button" style="font-size:12px;"
-                           onclick="deleteBook('${book.id}')">Elimina</button>`
+                ? `<div class="book-card-actions"><button class="delete-button"
+                           onclick="deleteBook('${book.id}')">Elimina</button></div>`
                 : '';
 
             const card = document.createElement('div');
             card.className = 'book-card';
             card.dataset.bookId = book.id;
+            const period = readingPeriod(book.start_date, book.end_date);
             card.innerHTML = `
-                <div class="book-card-title">${sanitize(book.title)}</div>
-                <div class="book-card-author">${sanitize(book.author)}</div>
-                <div class="book-card-meta">Aggiunto da ${sanitize(book.added_by)}${book.end_date ? ' · ' + sanitize(book.end_date) : ''}</div>
+                <a href="scheda.html?id=${book.id}" class="book-card-main">
+                    ${bookCover(book)}
+                    <div class="book-card-text">
+                        <div class="book-card-title">${sanitize(book.title)}</div>
+                        <div class="book-card-author">${sanitize(book.author)}</div>
+                        <div class="book-card-meta">
+                            <span>${sanitize(book.added_by)}</span>
+                            ${period ? `<span class="period">${sanitize(period)}</span>` : ''}
+                        </div>
+                    </div>
+                </a>
                 <div class="book-card-footer">
-                    <a href="scheda.html?id=${book.id}" class="link-view">Visualizza scheda</a>
+                    <div class="social-bar">
+                        <button class="like-btn ${liked ? 'liked' : ''}" data-book-id="${book.id}" aria-pressed="${liked}">
+                            ${likeInner(liked, likeCount)}
+                        </button>
+                        <button class="comment-toggle-btn" data-book-id="${book.id}" aria-expanded="false">
+                            ${icon('message')}<span>${commentCount}</span><span class="sr-only">commenti</span>
+                        </button>
+                    </div>
                     ${actionsHtml}
-                </div>
-                <div class="social-bar">
-                    <button class="like-btn ${liked ? 'liked' : ''}" data-book-id="${book.id}">
-                        ${liked ? '♥' : '♡'} <span class="like-num">${likeCount}</span>
-                    </button>
-                    <button class="comment-toggle-btn" data-book-id="${book.id}">
-                        💬 ${commentCount}
-                    </button>
                 </div>
                 <div class="comments-section" id="comments-${book.id}" style="display:none;"></div>`;
             grid.appendChild(card);
@@ -277,9 +289,11 @@ async function loadRoom() {
                 const wrap   = document.getElementById(`comments-${bookId}`);
                 if (wrap.style.display === 'none') {
                     wrap.style.display = 'block';
+                    commentBtn.setAttribute('aria-expanded', 'true');
                     await loadComments(bookId);
                 } else {
                     wrap.style.display = 'none';
+                    commentBtn.setAttribute('aria-expanded', 'false');
                 }
                 return;
             }
@@ -290,7 +304,7 @@ async function loadRoom() {
                 const { error } = await db.from('book_comments').delete().eq('id', commentId);
                 if (!error) {
                     delCommentBtn.closest('.comment-item').remove();
-                    showToast('Commento eliminato.', 'success');
+                    showToast('Commento eliminato', 'success');
                 }
             }
         });
@@ -312,7 +326,7 @@ async function loadRoom() {
                 content
             });
             if (error) {
-                showToast('Errore durante l\'invio.', 'error');
+                showToast('Errore durante l\'invio', 'error');
             } else {
                 textarea.value = '';
                 await loadComments(bookId);
@@ -323,21 +337,22 @@ async function loadRoom() {
 
     // --- Render membri ---
     document.getElementById('members-container').innerHTML = `
-        <div class="section-title">Membri del gruppo (${members.length})</div>
+        <h2 class="section-title">Membri <span class="section-count">${members.length}</span></h2>
         <ul class="room-member-list">
             ${members.map(m => `
                 <li class="room-member-item">
-                    <span class="room-member-nick">${sanitize(m.profiles?.nickname ?? '?')}</span>
+                    <span class="avatar" aria-hidden="true">${sanitize((m.profiles?.nickname ?? '?').charAt(0).toUpperCase())}</span>
+                    <span class="room-member-nick">${sanitize(m.profiles?.nickname ?? '?')}${m.user_id === currentUser.id ? ' <span class="room-member-you">(tu)</span>' : ''}</span>
                     <span class="room-member-role ${m.role === 'admin' ? 'role-admin' : 'role-member'}">
                         ${m.role === 'admin' ? 'Admin' : 'Membro'}
                     </span>
                     ${isAdmin && m.user_id !== currentUser.id
-                        ? `<div style="display:flex;gap:6px;margin-left:auto;">
+                        ? `<div class="room-member-actions">
                                ${m.role === 'member'
-                                   ? `<button class="btn-secondary" style="font-size:12px;padding:4px 10px;"
+                                   ? `<button class="edit-button"
                                               onclick="promoteToAdmin('${groupId}', '${m.user_id}')">Promuovi ad admin</button>`
                                    : ''}
-                               <button class="delete-button" style="font-size:12px;"
+                               <button class="delete-button"
                                        onclick="removeMember('${groupId}', '${m.user_id}')">Rimuovi</button>
                            </div>`
                         : ''}
@@ -350,9 +365,9 @@ async function deleteBook(bookId) {
     showConfirm('Eliminare questo libro?', async () => {
         const { error } = await db.from('books').delete().eq('id', bookId);
         if (error) {
-            showToast('Errore durante l\'eliminazione.', 'error');
+            showToast('Errore durante l\'eliminazione', 'error');
         } else {
-            showToast('Libro eliminato.', 'success');
+            showToast('Libro eliminato', 'success');
             await loadRoom();
         }
     });
